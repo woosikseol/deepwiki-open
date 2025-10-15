@@ -1,0 +1,7 @@
+# Core dependencies for python_kb Knowledge Base Generator
+google-generativeai>=0.8.0
+python-dotenv>=1.0.0
+
+# Optional: PostgreSQL support (if you want to use database storage)
+# psycopg2-binary==2.9.7
+# pgvector==0.2.4

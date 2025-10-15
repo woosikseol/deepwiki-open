@@ -1,0 +1,29 @@
+{
+  "project_name": "python_kb",
+  "project_path": "/Users/woosik/repository/deepwiki-open/python_kb",
+  "statistics": {
+    "total_files": 15,
+    "code_files": 13,
+    "doc_files": 2,
+    "languages": {
+      "python": 13
+    },
+    "total_size": 94308
+  },
+  "readme_title": "Python Knowledge Base Generator",
+  "readme_sections": [
+    "개요",
+    "특징",
+    "지원 언어",
+    "설치",
+    "Quick Start",
+    "사용법",
+    "출력 파일",
+    "프로젝트 구조",
+    "제외 규칙",
+    "요구사항",
+    "개발 정보",
+    "라이선스",
+    "참고"
+  ]
+}

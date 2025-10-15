@@ -1,0 +1,25 @@
+{
+  "project_name": "python_chunking",
+  "project_path": "/Users/woosik/repository/deepwiki-open/python_chunking",
+  "statistics": {
+    "total_files": 89,
+    "code_files": 57,
+    "doc_files": 32,
+    "languages": {
+      "python": 38,
+      "java": 3,
+      "javascript": 16
+    },
+    "total_size": 1018896
+  },
+  "readme_title": "Python Code Chunking System",
+  "readme_sections": [
+    "기능",
+    "설치",
+    "사용법",
+    "아키텍처",
+    "프로젝트 구조",
+    "원본과의 차이점",
+    "라이선스"
+  ]
+}
