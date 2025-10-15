@@ -1,208 +1,148 @@
 ---
 title: 규칙 및 규약 (명명 규칙, 규칙 등)
 project: python_kb
-generated_at: 2025-10-15 16:59:44
+generated_at: 2025-10-16 00:51:36
 generator: Python Knowledge Base Generator
 ---
 
-# Conventions
+# 컨벤션
 
 ## 개요
-이 문서는 `python_kb` 프로젝트의 코딩 컨벤션, 명명 규칙 및 모범 사례를 설명합니다. 이 규칙들을 준수함으로써 코드의 가독성을 높이고, 유지보수를 용이하게 하며, 팀원 간의 협업을 효율적으로 만들 수 있습니다.
+이 문서는 `python_kb` 프로젝트의 개발자들이 코드를 작성하고 유지보수할 때 따라야 할 명명 규칙, 코딩 스타일, 코드 구성 및 기타 표준을 정의합니다. 이러한 컨벤션을 준수함으로써 코드의 가독성, 일관성 및 유지보수성을 향상시키고, 협업을 원활하게 합니다.
 
 ## 명명 규칙
 
 ### 파일 명명
-- 패턴: snake_case를 사용합니다. 파일명은 소문자로 작성하고, 단어 사이는 밑줄(_)로 구분합니다.
-- 예시: `main.py`, `file_tree_analyzer.py`, `cache_manager.py`
-- 규칙:
-    - 모든 Python 파일은 `.py` 확장자를 가집니다.
-    - 파일명은 파일의 주요 기능을 나타내는 명확한 이름으로 짓습니다.
+-   **패턴**: 모든 Python 소스 파일은 소문자로 작성되며, 여러 단어는 밑줄(`_`)로 구분하는 스네이크 케이스(`snake_case`)를 사용합니다.
+-   **예시**:
+    -   `main.py`
+    -   `config.py`
+    -   `file_tree_analyzer.py`
+    -   `gemini_client.py`
+    -   `wiki_generator.py`
+    -   `test_example.py`
+-   **규칙**:
+    -   `.py` 확장자를 사용합니다.
+    -   파일 이름은 해당 파일의 주요 기능을 명확하게 나타내야 합니다.
 
 ### 디렉토리 명명
-- 패턴: snake_case를 사용합니다. 디렉토리명은 소문자로 작성하고, 단어 사이는 밑줄(_)로 구분합니다 (현재 프로젝트에서는 디렉토리 구조가 단순하여 snake_case를 강제하지 않음).
-- 예시: `python_kb` (프로젝트 루트 디렉토리), `.adalflow` (캐시 디렉토리)
-- 규칙:
-    - 디렉토리명은 디렉토리의 내용을 명확하게 나타내는 이름으로 짓습니다.
-    - 특수한 목적을 가지는 디렉토리(예: 캐시 디렉토리)는 점(.)으로 시작할 수 있습니다.
+-   **패턴**: 디렉토리 이름은 일반적으로 소문자를 사용하며, 여러 단어는 밑줄(`_`)로 구분하는 스네이크 케이스(`snake_case`)를 사용합니다. 프로젝트의 루트 디렉토리는 소문자 단일 이름을 사용합니다.
+-   **예시**:
+    -   `python_kb/` (프로젝트 루트 디렉토리)
+    -   `.adalflow/wikicache/` (내부 캐시 디렉토리)
+-   **규칙**:
+    -   디렉토리 이름은 해당 디렉토리의 내용을 명확하게 설명해야 합니다.
+    -   숨겨진 디렉토리(예: `.adalflow`)는 점(`.`)으로 시작합니다.
 
 ### 코드 명명
 
 #### 변수
-- 컨벤션: snake_case를 사용합니다. 변수명은 소문자로 작성하고, 단어 사이는 밑줄(_)로 구분합니다.
-- 예시:
-    - `project_path` (main.py)
-    - `cache_dir` (cache_manager.py)
-    - `file_path` (file_tree_analyzer.py)
-- 규칙:
-    - 변수명은 변수의 역할을 명확하게 나타내는 이름으로 짓습니다.
-    - 짧은 루프 카운터 변수 등에는 `i`, `j` 등의 짧은 이름을 사용할 수 있습니다.
-    - 임시 변수에는 `_`를 접두사로 사용할 수 있습니다.
+-   **컨벤션**: 변수 이름은 소문자로 작성되며, 여러 단어는 밑줄(`_`)로 구분하는 스네이크 케이스(`snake_case`)를 사용합니다.
+-   **예시**:
+    -   `project_path`
+    -   `language`
+    -   `no_cache`
+    -   `gemini_api_key`
+    -   `is_verbose`
+    -   `file_content`
 
 #### 함수/메서드
-- 컨벤션: snake_case를 사용합니다. 함수/메서드명은 소문자로 작성하고, 단어 사이는 밑줄(_)로 구분합니다.
-- 예시:
-    - `analyze_file_tree` (file_tree_analyzer.py)
-    - `generate_wiki_page` (wiki_generator.py)
-    - `load_from_cache` (cache_manager.py)
-- 규칙:
-    - 함수/메서드명은 수행하는 작업을 명확하게 나타내는 동사로 시작합니다.
-    - Boolean 값을 반환하는 함수의 경우 `is_`, `has_` 등의 접두사를 사용하여 의미를 명확하게 할 수 있습니다.
+-   **컨벤션**: 함수 및 메서드 이름은 소문자로 작성되며, 여러 단어는 밑줄(`_`)로 구분하는 스네이크 케이스(`snake_case`)를 사용합니다.
+-   **예시**:
+    -   `analyze_project_structure()` (추정)
+    -   `generate_wiki_pages()` (추정)
+    -   `load_config()` (추정)
+    -   `parse_readme()` (추정)
+    -   `validate_mermaid_syntax()` (추정)
 
 #### 클래스
-- 컨벤션: CamelCase를 사용합니다. 클래스명은 각 단어의 첫 글자를 대문자로 작성합니다.
-- 예시:
-    - `CacheManager` (cache_manager.py)
-    - `GeminiClient` (gemini_client.py)
-    - `MarkdownExporter` (markdown_exporter.py)
-- 규칙:
-    - 클래스명은 클래스의 역할을 명확하게 나타내는 명사로 짓습니다.
+-   **컨벤션**: 클래스 이름은 각 단어의 첫 글자를 대문자로 하는 파스칼 케이스(`PascalCase`) 또는 캡워드(`CapWords`)를 사용합니다.
+-   **예시**:
+    -   `FileTreeAnalyzer` (추정)
+    -   `GeminiClient` (추정)
+    -   `WikiGenerator` (추정)
+    -   `CacheManager` (추정)
+    -   `MarkdownExporter` (추정)
+    -   `MermaidValidator` (추정)
 
 #### 상수
-- 컨벤션: UPPER_SNAKE_CASE를 사용합니다. 상수명은 모든 글자를 대문자로 작성하고, 단어 사이는 밑줄(_)로 구분합니다.
-- 예시:
-    - `DEFAULT_CACHE_DIR` (config.py)
-    - `EXCLUDED_DIRS` (file_tree_analyzer.py)
-- 규칙:
-    - 상수명은 상수 값을 명확하게 나타내는 이름으로 짓습니다.
+-   **컨벤션**: 전역 상수는 모든 글자를 대문자로 작성하며, 여러 단어는 밑줄(`_`)로 구분하는 `ALL_CAPS_WITH_UNDERSCORES`를 사용합니다.
+-   **예시**:
+    -   `GEMINI_API_KEY`
+    -   `DB_HOST`
+    -   `DB_PORT`
+    -   `CACHE_DIR_NAME` (추정)
+    -   `DEFAULT_LANGUAGE` (추정)
 
 ## 코드 구성
 
 ### 파일 구조
-- 각 파일은 특정 기능을 수행하는 클래스, 함수 및 변수를 포함합니다.
-- 관련된 기능들은 하나의 파일에 모아 모듈성을 높입니다.
-- 설정 정보는 `config.py`에, 로깅 설정은 `logging_config.py`에, LLM 클라이언트는 `gemini_client.py`에 정의하는 방식으로 관심사를 분리합니다.
+프로젝트는 기능별로 모듈화된 Python 파일을 포함하는 표준 Python 패키지 구조를 따릅니다.
+-   `__init__.py`: 패키지 초기화를 나타냅니다.
+-   `main.py`: 애플리케이션의 메인 진입점입니다.
+-   `config.py`: 애플리케이션의 설정 및 환경 변수 로딩을 담당합니다.
+-   `prompts.py`: LLM 프롬프트 템플릿을 정의합니다.
+-   각 `_*.py` 파일은 특정 기능(예: `file_tree_analyzer.py`, `gemini_client.py`, `wiki_generator.py`)을 캡슐화합니다.
+-   `requirements.txt`: 프로젝트의 모든 Python 의존성을 나열합니다.
 
 ### 모듈 구성
-- 프로젝트는 여러 모듈로 구성되어 있으며, 각 모듈은 특정 기능을 담당합니다.
-- 모듈 간의 의존성을 최소화하여 유지보수성을 높입니다.
-- `__init__.py` 파일을 사용하여 디렉토리를 패키지로 만듭니다.
+각 `.py` 파일은 특정 책임 영역을 담당하는 독립적인 모듈로 구성됩니다. 예를 들어:
+-   `file_tree_analyzer.py`는 프로젝트 파일 구조 분석에 집중합니다.
+-   `gemini_client.py`는 Google Gemini LLM과의 상호작용을 처리합니다.
+-   `wiki_generator.py`는 Wiki 페이지 생성의 핵심 로직을 포함합니다.
+이러한 모듈화는 코드의 재사용성을 높이고, 각 부분의 독립적인 테스트를 용이하게 합니다.
 
-### Import 컨벤션
-- 표준 라이브러리, 써드파티 라이브러리, 로컬 모듈 순서로 import 합니다.
-- 각 그룹 내에서는 알파벳 순서로 정렬합니다.
-- `from module import ...` 구문보다는 `import module` 구문을 사용하는 것을 선호합니다 (네임스페이스 충돌 방지). 다만, 필요한 경우 명확성을 위해 `from ... import ...` 구문을 사용할 수 있습니다.
-- 사용하지 않는 import 문은 제거합니다.
-
-```python
-# 예시 (main.py)
-import argparse
-import os
-
-from cache_manager import CacheManager
-from config import DEFAULT_CACHE_DIR, LANGUAGES
-from file_tree_analyzer import FileTreeAnalyzer
-from gemini_client import GeminiClient
-from logging_config import setup_logging
-from markdown_exporter import MarkdownExporter
-from mermaid_validator import MermaidValidator
-from prompts import prompts
-from readme_parser import ReadmeParser
-from wiki_generator import WikiGenerator
-```
+### 임포트 컨벤션
+Python의 표준 PEP 8 권장 사항을 따릅니다.
+-   **순서**:
+    1.  표준 라이브러리 임포트 (예: `os`, `sys`, `json`)
+    2.  서드파티 라이브러리 임포트 (예: `google.generativeai`, `dotenv`)
+    3.  로컬 애플리케이션/라이브러리 관련 임포트 (예: `from . import config`, `from .cache_manager import CacheManager`)
+-   **스타일**:
+    -   모든 임포트는 파일의 맨 위에 위치합니다.
+    -   절대 임포트(`from project_name import module`)를 선호합니다.
+    -   관련 임포트 그룹 사이에는 한 줄을 비워둡니다.
 
 ## 코딩 스타일
 
 ### 포맷팅
-- PEP 8 스타일 가이드를 준수합니다.
-- Black, flake8, pylint 등의 도구를 사용하여 코드 포맷팅 및 스타일을 일관성 있게 유지합니다. (실제 프로젝트에 해당 설정이 적용되어 있는지는 확인 필요)
-- 공백 4칸 들여쓰기를 사용합니다.
-- 한 줄의 최대 길이는 79자 (또는 120자)를 넘지 않도록 합니다.
-- 함수/클래스 정의 위에는 빈 줄 두 개, 함수/메서드 내에서는 빈 줄 한 개를 사용하여 가독성을 높입니다.
+-   **PEP 8 준수**: 모든 코드는 Python Enhancement Proposal 8 (PEP 8) 스타일 가이드를 따릅니다.
+-   **들여쓰기**: 4개의 스페이스를 사용하여 들여쓰기합니다. 탭은 사용하지 않습니다.
+-   **최대 라인 길이**: 명시적으로 정의되어 있지 않지만, 일반적으로 79~99자 이내를 권장하여 가독성을 높입니다.
+-   **공백**: 연산자 주위, 콤마 뒤 등에 적절한 공백을 사용합니다.
+-   **빈 줄**: 논리적으로 구분되는 코드 블록 사이에 빈 줄을 사용하여 가독성을 높입니다.
 
 ### 문서화
-- 모든 함수, 클래스, 모듈에는 docstring을 작성합니다.
-- docstring은 Google 스타일 가이드를 따릅니다.
-- 코드의 복잡한 부분에는 주석을 추가하여 설명을 제공합니다.
-- 주석은 코드의 의도를 명확하게 설명해야 하며, 불필요한 주석은 제거합니다.
+-   **독스트링(Docstrings)**: 모든 모듈, 클래스, 공개 함수 및 메서드에는 독스트링을 포함해야 합니다. 독스트링은 해당 코드의 목적, 인수, 반환 값 및 예외를 설명해야 합니다.
+    -   **예시**:
+        ```python
+        def analyze_project_structure(project_path: str) -> dict:
+            """
+            주어진 프로젝트 경로의 파일 구조를 분석하고 계층적 맵을 반환합니다.
 
-```python
-# 예시 (cache_manager.py)
-class CacheManager:
-    """캐시 파일을 관리하는 클래스입니다."""
+            Args:
+                project_path (str): 분석할 프로젝트의 루트 경로.
 
-    def __init__(self, cache_dir):
-        """CacheManager 클래스의 생성자입니다.
-
-        Args:
-            cache_dir (str): 캐시 파일이 저장될 디렉토리 경로입니다.
-        """
-        self.cache_dir = cache_dir
-        os.makedirs(self.cache_dir, exist_ok=True)
-```
+            Returns:
+                dict: 프로젝트의 파일 및 디렉토리 구조를 나타내는 딕셔너리.
+            """
+            # ... 구현 ...
+        ```
+-   **주석**: 복잡하거나 비직관적인 코드 섹션에 대한 설명을 위해 인라인 주석(`_#_`)을 사용합니다. 주석은 코드의 "왜"를 설명해야 하며, "무엇"은 코드 자체로 명확해야 합니다.
 
 ### 오류 처리
-- try-except 블록을 사용하여 예외를 처리합니다.
-- except 블록에서는 구체적인 예외 유형을 명시합니다.
-- 예외 발생 시 적절한 로깅을 수행합니다.
-- 예상치 못한 예외가 발생할 경우, 프로그램을 종료하는 대신 사용자에게 유용한 오류 메시지를 표시합니다.
+-   **예외 처리**: `try...except` 블록을 사용하여 예상되는 오류를 적절하게 처리하고, 사용자에게 의미 있는 피드백을 제공합니다.
+-   **로깅**: `logging_config.py`에 정의된 로깅 설정을 활용하여 애플리케이션의 중요한 이벤트, 경고 및 오류를 기록합니다. 민감한 정보는 로그에 포함하지 않도록 주의합니다.
+-   **특정 예외**: 가능한 경우 일반 `Exception` 대신 `FileNotFoundError`, `ValueError` 등과 같은 특정 예외를 포착합니다.
 
-```python
-# 예시 (main.py)
-try:
-    project_path = os.path.abspath(args.project_path)
-    if not os.path.exists(project_path):
-        raise ValueError(f"프로젝트 경로 '{project_path}'가 존재하지 않습니다.")
-except ValueError as e:
-    logger.error(f"잘못된 프로젝트 경로: {e}")
-    sys.exit(1)
-```
-
-## 프로젝트-특정 컨벤션
+## 프로젝트별 컨벤션
 
 ### 테스팅
-- (test_example.py 파일이 존재하지만, 자세한 테스트 컨벤션은 정의되지 않음)
-- 각 모듈/클래스에 대한 단위 테스트를 작성합니다 (권장).
-- pytest 등의 테스트 프레임워크를 사용하여 테스트를 자동화합니다 (권장).
-- 테스트 코드는 `test_`로 시작하는 파일에 작성합니다 (권장).
+-   **테스트 파일 명명**: 테스트 파일은 `test_*.py` 패턴을 따릅니다 (예: `test_example.py`).
+-   **테스트 함수 명명**: 테스트 함수는 `test_` 접두사로 시작해야 합니다 (예: `test_basic_functionality`).
+-   **테스트 프레임워크**: `pytest`와 같은 표준 Python 테스트 프레임워크를 사용하는 것으로 보입니다.
 
-### 설정
-- 설정 파일은 `.env` 파일에 저장합니다.
-- `python-dotenv` 라이브러리를 사용하여 환경 변수를 로드합니다.
-- 설정 값에 대한 기본값은 `config.py` 파일에 정의합니다.
-
-### 빌드 및 배포
-- (빌드 및 배포 컨벤션은 현재 정의되지 않음)
-- `requirements.txt` 파일을 사용하여 프로젝트 의존성을 관리합니다.
-- Docker를 사용하여 애플리케이션을 컨테이너화합니다 (권장).
-- CI/CD 파이프라인을 구축하여 빌드, 테스트 및 배포를 자동화합니다 (권장).
-
-## 모범 사례
-
-- 코드 리뷰를 통해 코드 품질을 향상시킵니다.
-- 변경 사항을 커밋하기 전에 항상 테스트를 실행합니다.
-- 코드 변경 사항에 대한 설명을 명확하게 작성합니다.
-- 지속적인 통합 및 배포 (CI/CD)를 사용하여 개발 프로세스를 자동화합니다.
-- 정기적으로 코드베이스를 리팩토링하여 유지보수성을 높입니다.
-
-## 예시
-
-### 좋은 예시
-```python
-# file_tree_analyzer.py
-def analyze_file_tree(project_path, excluded_dirs=EXCLUDED_DIRS):
-    """프로젝트의 파일 트리를 분석합니다.
-
-    Args:
-        project_path (str): 분석할 프로젝트의 경로입니다.
-        excluded_dirs (list): 분석에서 제외할 디렉토리 목록입니다.
-
-    Returns:
-        dict: 파일 트리 분석 결과입니다.
-    """
-    file_tree = {}
-    for root, dirs, files in os.walk(project_path):
-        dirs[:] = [d for d in dirs if d not in excluded_dirs]  # Exclude dirs in place
-        for file in files:
-            file_path = os.path.join(root, file)
-            relative_path = os.path.relpath(file_path, project_path)
-            file_tree[relative_path] = {}  # You might want to add more file info here later
-    return file_tree
-```
-
-### 피해야 할 안티 패턴
-- 너무 긴 함수 또는 클래스 (단일 책임 원칙 위반)
-- 과도한 중첩 (가독성 저하)
-- 하드코딩된 값 (유연성 부족)
-- 주석 없는 복잡한 로직 (이해하기 어려움)
-- 예외 처리 없는 코드 (예상치 못한 오류 발생 가능성 증가)
+### 환경 설정
+-   **환경 변수**: `python-dotenv` 라이브러리를 사용하여 `.env` 파일에서 환경 변수를 로드합니다. 민감한 정보(예: `GEMINI_API_KEY`)는 환경 변수로 관리해야 합니다.
+-   **설정 파일**: `config.py` 파일은 환경 변수를 로드하고 애플리케이션 전반에 걸쳐 사용되는 설정 값을 관리합니다.
+-   **의존성 관리**: `requirements.txt` 파일을 사용하여

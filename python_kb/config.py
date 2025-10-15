@@ -12,7 +12,8 @@ load_dotenv()
 
 # Gemini API 설정
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-GEMINI_MODEL = "gemini-2.0-flash-exp"  # gemini-2.5-flash-lite 대신 gemini-2.0-flash-exp 사용
+# GEMINI_MODEL = "gemini-2.5-flash"  # 요구사항에 따라 gemini-2.5-flash 사용
+GEMINI_MODEL = "gemini-2.5-flash-lite"  # 요구사항에 따라 gemini-2.5-flash-lite 사용
 
 # 다국어 지원 설정 (출력 언어)
 OUTPUT_LANGUAGES = {
@@ -31,7 +32,8 @@ DB_CONFIG = {
     'password': os.getenv('DB_PASSWORD', ''),
 }
 
-# 캐시 디렉토리 설정 (프로젝트 내부)
+# 캐시 디렉토리 설정 (./python_kb/.adalflow/wikicache/)
+# 파일 저장 위치는 프로젝트 내부이지만, 규칙과 구조는 DeepWiki와 동일
 CACHE_ROOT = Path(__file__).parent / '.adalflow' / 'wikicache'
 CACHE_ROOT.mkdir(parents=True, exist_ok=True)
 
@@ -74,22 +76,22 @@ EXCLUDED_FILES = [
 WIKI_PAGES = {
     'project_structure': {
         'ko': {
-            'title': '프로젝트 구조 및 개요 (주요 기능 포함)',
-            'description': '프로젝트 구조 개요 및 주요 기능'
+            'title': '프로젝트 구조 및 개요 (주요 기능 포함, 아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)',
+            'description': '프로젝트 구조 개요 및 주요 기능 (아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)'
         },
         'en': {
-            'title': 'Project Structure & Overview (and Key Features) including Architecture Diagram & Flow Diagram',
-            'description': 'Project structure overview and key features including architecture and flow diagrams'
+            'title': 'Project Structure & Overview (and Key Features) including Architecture Diagram & Module Diagram & Flow Diagram',
+            'description': 'Project structure overview and key features including architecture, module and flow diagrams'
         }
     },
     'architecture': {
         'ko': {
-            'title': '전체 시스템 아키텍처 및 주요 기능에서 사용되는 디자인 패턴 (아키텍처 다이어그램 및 플로우 다이어그램 포함)',
-            'description': '주요 기능에서 사용되는 시스템 아키텍처 및 디자인 패턴 (아키텍처 다이어그램 및 플로우 다이어그램 포함)'
+            'title': '전체 시스템 아키텍처 및 주요 기능에서 사용되는 디자인 패턴 (아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)',
+            'description': '주요 기능에서 사용되는 시스템 아키텍처 및 디자인 패턴 (아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)'
         },
         'en': {
-            'title': 'Overall System Architecture & Design Patterns (including Architecture Diagram & Flow Diagram) used in major features',
-            'description': 'System architecture and design patterns used in major features including architecture and flow diagrams'
+            'title': 'Overall System Architecture & Design Patterns (including Architecture Diagram & Module Diagram & Flow Diagram) used in major features',
+            'description': 'System architecture and design patterns used in major features including architecture, module and flow diagrams'
         }
     },
     'conventions': {

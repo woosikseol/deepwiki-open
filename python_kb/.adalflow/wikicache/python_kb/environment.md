@@ -1,139 +1,195 @@
 ---
 title: 환경 설정 및 가이드
 project: python_kb
-generated_at: 2025-10-15 16:59:44
+generated_at: 2025-10-16 00:51:36
 generator: Python Knowledge Base Generator
 ---
 
-# 환경 설정 가이드
+# 환경 설정 및 가이드
 
-## 사전 준비 사항
+이 문서는 `python_kb` 프로젝트를 개발하고 실행하기 위한 환경 설정 방법을 안내합니다.
+
+## 사전 요구 사항
 
 ### 시스템 요구 사항
-- 운영체제: 모든 주요 운영체제 (macOS, Linux, Windows)
-- Python 버전: 3.11.9 이상
-- 기타 도구: Git
+- 운영 체제: Linux, macOS, Windows (Python 3.11.9를 지원하는 모든 OS)
+- Python 버전: 3.11.9
+- 기타 도구: Git, Google Gemini API 키
 
 ### 필수 의존성
-- google-generativeai>=0.8.0
-- python-dotenv>=1.0.0
+`python_kb` 프로젝트는 다음 Python 패키지에 의존합니다:
+- `google-generativeai>=0.8.0` (Google Gemini API 통신)
+- `python-dotenv>=1.0.0` (환경 변수 관리)
 
 ## 설치 가이드
 
-### 1단계: Python 설치
+이 프로젝트는 상위 `deepwiki-open` 프로젝트의 가상 환경을 공유하여 사용합니다.
+
+### 1단계: Python 3.11.9 설치 확인
+프로젝트는 Python 3.11.9 버전을 요구합니다. 시스템에 해당 버전이 설치되어 있는지 확인하고, 필요하다면 설치합니다. `pyenv`, `conda`, 또는 OS의 패키지 관리자를 사용하여 설치할 수 있습니다.
+
 ```bash
-# Homebrew를 사용하는 macOS의 경우:
-brew install python@3.11
-
-# apt를 사용하는 Ubuntu/Debian의 경우:
-sudo apt update
-sudo apt install python3.11 python3.11-venv
-
-# Windows의 경우:
-# Python 공식 웹사이트 (https://www.python.org/downloads/)에서 설치 프로그램을 다운로드하여 실행합니다.
-# 설치 시 "Add Python to PATH" 옵션을 선택해야 합니다.
+# 설치된 Python 버전 확인
+python3.11 --version
 ```
 
-### 2단계: 저장소 복제
-```bash
-git clone <저장소 URL>
-cd python_kb
-```
+### 2단계: 상위 저장소 클론 및 프로젝트 이동
+`python_kb` 프로젝트는 `deepwiki-open` 저장소의 하위 디렉토리로 존재합니다. 먼저 `deepwiki-open` 저장소를 클론하고 `python_kb` 디렉토리로 이동합니다.
 
-### 3단계: 의존성 설치
-프로젝트 루트 디렉토리에서 다음 명령을 실행합니다.
 ```bash
-# 프로젝트 루트의 가상환경 사용 (python_chunking과 공유하는 경우)
-cd /Users/woosik/repository/deepwiki-open # 필요에 따라 경로 조정
-source .venv/bin/activate
+# 상위 저장소 클론 (예시 URL, 실제 저장소 URL로 대체하세요)
+git clone https://github.com/your-org/deepwiki-open.git
+cd deepwiki-open
 
 # python_kb 디렉토리로 이동
 cd python_kb
+```
 
+### 3단계: 가상 환경 활성화 및 의존성 설치
+`deepwiki-open` 프로젝트의 루트에 있는 공유 가상 환경을 활성화하고 `python_kb`의 의존성을 설치합니다.
+
+```bash
+# python_kb 디렉토리에서 상위 디렉토리로 이동하여 가상 환경 활성화
+cd ..
+source .venv/bin/activate
+
+# 다시 python_kb 디렉토리로 이동
+cd python_kb
+
+# 의존성 설치
 pip install -r requirements.txt
 ```
 
-### 4단계: 환경 설정
+### 4단계: 설정
 
 #### 환경 변수
-`.env` 파일을 생성하고 Gemini API 키를 설정합니다. `.env.example` 파일을 복사하여 편집하는 것이 좋습니다.
-```bash
-cp .env.example .env
-```
+`python_kb` 디렉토리 내에 `.env` 파일을 생성하고 다음 환경 변수를 설정해야 합니다. 특히 `GEMINI_API_KEY`는 필수입니다.
 
-`.env` 파일 내용 예시:
+```bash
+# python_kb/.env 파일 생성
+cat > .env << 'EOF'
+# Gemini API Configuration
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+
+# PostgreSQL Configuration (향후 사용 예정)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=deepwiki
+DB_USER=postgres
+DB_PASSWORD=
+EOF
 ```
-GEMINI_API_KEY=your_actual_api_key_here
-```
+**주의:** `YOUR_GEMINI_API_KEY_HERE`를 실제 발급받은 Gemini API 키로 대체해야 합니다.
 
 **Gemini API 키 발급 방법:**
 1. [Google AI Studio](https://makersuite.google.com/app/apikey)에 접속합니다.
-2. "Get API Key"를 클릭합니다.
+2. "Get API Key" 버튼을 클릭합니다.
 3. 생성된 API 키를 `.env` 파일에 입력합니다.
 
 #### 설정 파일
-`config.py` 파일은 필요에 따라 수정할 수 있습니다. 기본 설정은 대부분의 경우에 적합합니다.
+`config.py` 파일은 프로젝트의 내부 설정을 관리하지만, 일반적으로 개발자가 직접 수정할 필요는 없습니다. 모든 사용자 관련 설정은 `.env` 파일을 통해 이루어집니다.
 
-## 검증
+## 설치 확인
 
 ### 설치 확인
-Python 및 필요한 패키지가 제대로 설치되었는지 확인합니다.
+가상 환경이 올바르게 설정되고 모든 의존성이 설치되었는지 확인합니다.
+
 ```bash
+# 가상 환경이 활성화된 상태에서 (python_kb 디렉토리 내)
 python --version
-pip show google-generativeai python-dotenv
+# 예상 출력: Python 3.11.9 (또는 유사)
+
+pip list | grep google-generativeai
+# 예상 출력: google-generativeai 0.8.0 (또는 그 이상 버전)
+
+# 프로젝트 실행을 통해 환경 설정 검증
+# 예시: python_chunking 프로젝트 분석 (상위 디렉토리의 다른 프로젝트)
+python main.py ../python_chunking/
 ```
 
 ### 테스트 실행
-테스트 코드는 `test_example.py` 에 존재합니다. 다음 명령어로 실행할 수 있습니다.
+프로젝트에는 `test_example.py` 파일이 포함되어 있습니다. 현재 `pytest`와 같은 특정 테스트 러너는 명시적으로 설정되어 있지 않으므로, 파일을 직접 실행하여 기본적인 기능을 확인할 수 있습니다.
 
 ```bash
-# pytest 설치 (필요한 경우)
-pip install pytest
-
-# 테스트 실행
-pytest
+# 가상 환경이 활성화된 상태에서 (python_kb 디렉토리 내)
+python test_example.py
 ```
+**참고**: `test_example.py`의 내용에 따라 실제 테스트 동작 및 출력이 달라질 수 있습니다.
 
-### 예상 출력
-테스트가 성공적으로 실행되면, 모든 테스트가 통과했다는 메시지가 표시됩니다.
+### 예상 결과
+위 `python main.py ../python_chunking/` 명령을 성공적으로 실행하면, `python_kb/.adalflow/wikicache/python_chunking/` 디렉토리 내에 다음과 같은 Markdown 및 JSON 파일들이 생성됩니다:
+- `project_structure.md`
+- `architecture.md`
+- `conventions.md`
+- `environment.md`
+- 관련 `.json` 캐시 파일들
 
 ## 개발 워크플로우
 
 ### 프로젝트 실행
 
 #### 개발 모드
+개발 중에는 다양한 옵션을 사용하여 프로젝트를 실행하고 상세 로그를 확인할 수 있습니다.
+
 ```bash
-# python_chunking 프로젝트 분석 (개발 모드)
+# 가상 환경 활성화 (deepwiki-open/ .venv)
+cd /path/to/deepwiki-open
+source .venv/bin/activate
+cd python_kb
+
+# 상세 로그와 함께 python_chunking 프로젝트 분석
 python main.py ../python_chunking/ --verbose
+
+# 캐시를 사용하지 않고 새로 생성
+python main.py ../python_chunking/ --no-cache
+
+# 기존 캐시를 무시하고 강제로 재생성
+python main.py ../python_chunking/ --force
+
+# 영어로 Wiki 생성
+python main.py ../python_chunking/ --language en
+
+# Mermaid 다이어그램 구문 검증
+python main.py ../python_chunking/ --validate-mermaid
+
+# Mermaid 구문 오류 자동 수정
+python main.py ../python_chunking/ --fix-mermaid
 ```
 
-#### 운영 모드
-운영 환경에서는 `--verbose` 옵션을 제거하여 로그 출력을 최소화할 수 있습니다.
+#### 표준 실행 모드
+일반적인 사용 또는 "운영" 모드에 가까운 실행은 추가 옵션 없이 프로젝트를 분석합니다. 캐시가 활성화되어 있으면 재분석 시 빠르게 문서를 생성합니다.
+
 ```bash
-# python_chunking 프로젝트 분석 (운영 모드)
-python main.py ../python_chunking/
+# 가상 환경 활성화 후 python_kb 디렉토리에서
+python main.py <분석할_프로젝트_경로>
 ```
 
 ### 일반적인 명령어
-- `python main.py <project_path>`: 지정된 프로젝트 경로를 분석하고 Knowledge Base를 생성합니다.
-- `python main.py <project_path> --no-cache`: 캐시를 사용하지 않고 새로운 Knowledge Base를 생성합니다.
-- `python main.py <project_path> --language en`: Knowledge Base를 영어로 생성합니다.
+- `python main.py <project_path>`: 지정된 프로젝트를 분석하고 Wiki를 생성합니다.
+- `python main.py <project_path> --language en`: 영문으로 Wiki를 생성합니다.
+- `python main.py <project_path> --force`: 기존 캐시를 무시하고 강제로 Wiki를 재생성합니다.
+- `python main.py <project_path> --cache-only`: LLM 호출 없이 캐시된 데이터만 사용하여 Markdown 파일을 생성합니다.
+- `python main.py <project_path> --verbose`: 상세한 실행 로그를 출력하여 디버깅에 도움을 줍니다.
 
 ## 문제 해결
 
-### 문제 1: Gemini API 키 오류
-**문제**: `GEMINI_API_KEY` 환경 변수가 설정되지 않았거나 잘못 설정되었습니다.
-**해결 방법**: `.env` 파일에 올바른 API 키가 입력되었는지 확인하고, 가상 환경이 활성화되었는지 확인합니다.
+### 문제 1: `GEMINI_API_KEY` 누락 또는 잘못됨
+**문제**: `GEMINI_API_KEY`가 `.env` 파일에 없거나 잘못되어 LLM 호출이 실패합니다.
+**해결**: `python_kb/.env` 파일이 존재하는지 확인하고, `GEMINI_API_KEY` 변수에 유효한 Gemini API 키가 올바르게 입력되었는지 확인하세요. Google AI Studio에서 키를 다시 발급받을 수도 있습니다.
 
-### 문제 2: 의존성 설치 오류
-**문제**: `requirements.txt`에 명시된 패키지가 설치되지 않았습니다.
-**해결 방법**: `pip install -r requirements.txt` 명령어를 다시 실행하고, 오류 메시지를 확인하여 누락된 시스템 의존성이 있는지 확인합니다.
+### 문제 2: 가상 환경이 활성화되지 않음
+**문제**: `ModuleNotFoundError`가 발생하거나 `pip install`이 시스템 전역으로 설치됩니다.
+**해결**: `deepwiki-open` 프로젝트의 루트 디렉토리에서 `source .venv/bin/activate` 명령을 사용하여 가상 환경을 활성화했는지 확인하세요. `(venv)` 또는 유사한 표시가 터미널 프롬프트에 나타나야 합니다.
+
+### 문제 3: 대상 프로젝트 경로 오류
+**문제**: `python main.py <project_path>` 실행 시, `<project_path>`를 찾을 수 없다는 오류가 발생합니다.
+**해결**: `<project_path>`가 `main.py`를 실행하는 현재 작업 디렉토리(보통 `python_kb`)를 기준으로 올바른 상대 경로 또는 절대 경로인지 확인하세요. 예를 들어, `deepwiki-open`의 하위 프로젝트인 `python_chunking`을 분석하려면 `../python_chunking/`와 같이 상대 경로를 사용합니다.
 
 ## 추가 자료
 - [Google AI Studio](https://makersuite.google.com/app/apikey): Gemini API 키 발급
-- [Deepwiki GitHub](https://github.com/deep-wiki/deepwiki-open): Deepwiki 프로젝트
+- [Deepwiki 프로젝트](https://github.com/deep-wiki/deepwiki-open): `python_kb`의 기반이 된 프로젝트
+- [Python 공식 문서](https://docs.python.org/3/): Python 언어 및 표준 라이브러리 참조
 
 ## 개발 팁
-- 코드를 변경하기 전에 항상 최신 버전을 가져오고, 새로운 브랜치를 생성하여 작업합니다.
-- 코드 변경 후에는 반드시 테스트를 실행하여 변경 사항이 기존 기능에 영향을 미치지 않는지 확인합니다.
-- 커밋 메시지는 명확하고 간결하게 작성합니다.
+- **상세 로그 활용**: `--verbose` 플래그를 사용하여 코드의 실행 흐름과 LLM 호출 및 응답을 자세히 살펴보세요.
+- **캐시 구조 이해**: `python_kb/.adalflow/wikicache/` 디렉토리의

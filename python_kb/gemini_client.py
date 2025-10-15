@@ -37,9 +37,11 @@ class GeminiClient:
         # Gemini API 설정
         genai.configure(api_key=self.api_key)
         
-        # 모델 설정 (최신 버전)
+        # 모델 설정
         self.model_name = GEMINI_MODEL
         self.model = genai.GenerativeModel(self.model_name)
+        logger.info(f"Gemini 클라이언트 초기화 완료: {GEMINI_MODEL} (언어: {OUTPUT_LANGUAGES[self.language]})")
+        
         self.generation_config = {
             'temperature': LLM_TEMPERATURE,
             'max_output_tokens': LLM_MAX_TOKENS,
@@ -47,8 +49,6 @@ class GeminiClient:
         
         # Mermaid 검증기 초기화
         self.mermaid_validator = MermaidValidator()
-        
-        logger.info(f"Gemini 클라이언트 초기화 완료: {GEMINI_MODEL} (언어: {OUTPUT_LANGUAGES[self.language]})")
     
     def generate_content(
         self,
@@ -73,7 +73,7 @@ class GeminiClient:
             try:
                 logger.info(f"콘텐츠 생성 시도 {attempt + 1}/{retry_count}")
                 
-                # 최신 Gemini API 사용
+                # Gemini API 사용
                 response = self.model.generate_content(
                     prompt,
                     generation_config=genai.types.GenerationConfig(

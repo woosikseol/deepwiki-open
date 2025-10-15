@@ -7,7 +7,7 @@ DeepWiki 프로젝트의 프롬프트를 참조하여 작성되었습니다.
 PROJECT_STRUCTURE_PROMPT = """You are an expert technical writer analyzing a software project to create comprehensive documentation.
 
 <task>
-Generate a "Project Structure & Overview (and Key Features) including Architecture Diagram & Flow Diagram" page for the project: {project_name}
+Generate a "Project Structure & Overview (and Key Features) including Architecture Diagram & Module Diagram & Flow Diagram" page for the project: {project_name}
 
 This documentation should provide readers with a complete understanding of the project structure, key features, and how different components interact.
 </task>
@@ -26,7 +26,11 @@ This documentation should provide readers with a complete understanding of the p
    - Show main components and their relationships
    - Include data flow between components
    - Use appropriate diagram types (graph, flowchart, etc.)
-5. Create a data/execution flow diagram using Mermaid syntax:
+5. Create a module diagram using Mermaid syntax:
+   - Show module dependencies and relationships
+   - Illustrate module hierarchies
+   - Highlight key modules and their interactions
+6. Create a data/execution flow diagram using Mermaid syntax:
    - Illustrate how the system processes data
    - Show the sequence of operations
    - Highlight critical paths
@@ -82,6 +86,12 @@ Generate the content in Markdown format with the following structure:
 [Architecture diagram showing components and relationships]
 ```
 
+## Module Diagram
+
+```mermaid
+[Module diagram showing module dependencies and hierarchies]
+```
+
 ## Flow Diagram
 
 ```mermaid
@@ -108,7 +118,7 @@ Generate the content now:
 ARCHITECTURE_PROMPT = """You are an expert software architect analyzing a software project to document its architecture and design patterns.
 
 <task>
-Generate an "Overall System Architecture & Design Patterns (including Architecture Diagram & Flow Diagram) used in major features" page for the project: {project_name}
+Generate an "Overall System Architecture & Design Patterns (including Architecture Diagram & Module Diagram & Flow Diagram) used in major features" page for the project: {project_name}
 
 This documentation should help developers understand the architectural decisions, design patterns used, and how the system is structured at a high level.
 </task>
@@ -126,8 +136,11 @@ This documentation should help developers understand the architectural decisions
 3. Create architecture diagrams using Mermaid syntax:
    - High-level system architecture
    - Component interaction diagram
+4. Create module diagrams using Mermaid syntax:
    - Module dependency graph
-4. Create flow diagrams for major features using Mermaid syntax:
+   - Module hierarchies and relationships
+   - Package/module organization
+5. Create flow diagrams for major features using Mermaid syntax:
    - Feature execution flow
    - Data processing pipeline
    - User interaction flow
@@ -175,6 +188,11 @@ Generate the content in Markdown format with the following structure:
 ### Component Interaction
 ```mermaid
 [Component interaction diagram]
+```
+
+### Module Dependencies
+```mermaid
+[Module dependency diagram]
 ```
 
 ## Design Patterns

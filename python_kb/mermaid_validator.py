@@ -87,13 +87,23 @@ class MermaidValidator:
         if re.search(r'%.*$', mermaid_code, re.MULTILINE):
             errors.append("Mermaid에서는 % 주석을 사용할 수 없습니다")
         
-        # 세미콜론 누락 검사
+        # 세미콜론은 Mermaid에서 선택사항이므로 검사에서 제외
+        # 대신 더 중요한 구문 오류만 검사
+        
+        # 괄호 균형 검사
         lines = mermaid_code.split('\n')
         for i, line in enumerate(lines, 1):
-            line = line.strip()
-            if line and not line.startswith('subgraph') and not line.endswith(';') and not line.endswith('{') and not line.endswith('}'):
-                if '-->' in line or '--' in line:
-                    errors.append(f"라인 {i}: 연결 구문이 세미콜론으로 끝나지 않았습니다")
+            line_stripped = line.strip()
+            if line_stripped:
+                # 대괄호 [] 균형 검사
+                if line_stripped.count('[') != line_stripped.count(']'):
+                    errors.append(f"라인 {i}: 대괄호 [] 불균형")
+                # 소괄호 () 균형 검사 (노드 레이블 내)
+                # 연결 구문의 괄호는 제외하고 노드 레이블만 검사
+                node_labels = re.findall(r'[\w]+\[([^\]]+)\]', line_stripped)
+                for label in node_labels:
+                    if label.count('(') != label.count(')'):
+                        errors.append(f"라인 {i}: 노드 레이블 내 소괄호 () 불균형: {label}")
         
         # 노드 정의 오류 검사 (예: B --> C;{File Discovery})
         if re.search(r';\s*\{[^}]*\}', mermaid_code):
@@ -102,6 +112,19 @@ class MermaidValidator:
         # 중괄호 위치 오류 검사
         if re.search(r'-->\s*\{[^}]*\}', mermaid_code):
             errors.append("연결 구문과 노드 정의 사이에 세미콜론이 누락되었습니다")
+        
+        # 특수 문자 검사 (노드 레이블 내)
+        # 레이블이 이미 따옴표로 감싸진 연결 구문은 제외 (예: -- "Uses" -->)
+        problematic_patterns = [
+            (r'\[([^\]]*)/([^\]]*)\]', "노드 레이블에 '/' 문자가 포함되어 있어 문제 발생 가능"),
+        ]
+        
+        for pattern, message in problematic_patterns:
+            if re.search(pattern, mermaid_code):
+                # 연결 구문이 아닌 레이블 내부의 특수 문자만 체크
+                # 이미 따옴표로 감싸져 있지 않은 경우만
+                if not re.search(r'\["[^"]*"\]', mermaid_code):
+                    errors.append(message)
         
         if errors:
             return False, "; ".join(errors)
@@ -113,29 +136,54 @@ class MermaidValidator:
         # 주석 제거
         mermaid_code = re.sub(r'%.*$', '', mermaid_code, flags=re.MULTILINE)
         
-        # 노드 정의와 연결 구문 분리 (예: B --> C;{File Discovery} -> B --> C; C{File Discovery})
+        # 0. 연결 구문 끝에 있는 괄호 주석 제거 (예: node_id (comment text))
+        # 패턴: --> node_id (text)
+        # 먼저 화살표 다음에 오는 패턴 처리
+        mermaid_code = re.sub(r'(-->)\s+([a-zA-Z0-9_.]+)\s+\([^)]+\)', r'\1 \2', mermaid_code)
+        # 라인 끝에 있는 경우도 처리 (더 강력한 패턴)
+        mermaid_code = re.sub(r'([a-zA-Z0-9_.]+)\s+\([^)]+\)\s*$', r'\1', mermaid_code, flags=re.MULTILINE)
+        # 연결 끝에 node_id.py (text) 형태도 처리
+        mermaid_code = re.sub(r'([a-zA-Z0-9_.]+\.py)\s+\([^)]+\)', r'\1', mermaid_code)
+        
+        # 1. 노드 레이블 내 특수 문자 처리 (가장 먼저 수행)
+        mermaid_code = self._fix_node_labels(mermaid_code)
+        
+        # 2. 노드 정의와 연결 구문 분리 (예: B --> C;{File Discovery} -> B --> C; C{File Discovery})
         mermaid_code = re.sub(r'(\w+)\s*-->\s*(\w+);\s*\{([^}]*)\}', r'\1 --> \2;\n    \2{\3}', mermaid_code)
         
-        # 연결 구문과 노드 정의 사이 세미콜론 추가 (예: B --> C{File Discovery} -> B --> C; C{File Discovery})
+        # 3. 연결 구문과 노드 정의 사이 세미콜론 추가 (예: B --> C{File Discovery} -> B --> C; C{File Discovery})
         mermaid_code = re.sub(r'(\w+)\s*-->\s*(\w+)\s*\{([^}]*)\}', r'\1 --> \2;\n    \2{\3}', mermaid_code)
         
-        # 더 복잡한 패턴 처리 (예: A --> B;{C} -> A --> B; B{C})
+        # 4. 더 복잡한 패턴 처리 (예: A --> B;{C} -> A --> B; B{C})
         mermaid_code = re.sub(r'(\w+)\s*-->\s*(\w+);\s*\{([^}]*)\}', r'\1 --> \2;\n    \2{\3}', mermaid_code)
         
-        # 괄호와 중괄호가 섞인 패턴 처리
+        # 5. 괄호와 중괄호가 섞인 패턴 처리
         mermaid_code = re.sub(r'(\w+)\s*-->\s*(\w+);\s*\(([^)]*)\);\s*\{([^}]*)\}', r'\1 --> \2;\n    \2(\3){\4}', mermaid_code)
         
-        # 세미콜론 누락 수정 (연결 구문에만)
-        mermaid_code = re.sub(r'(\w+)\s*-->\s*(\w+)(?!;)', r'\1 --> \2;', mermaid_code)
-        mermaid_code = re.sub(r'(\w+)\s*--\s*([^-]+)\s*-->\s*(\w+)(?!;)', r'\1 -- \2 --> \3;', mermaid_code)
+        # 6. 세미콜론은 Mermaid에서 선택사항이므로 추가하지 않음
+        # mermaid_code = re.sub(r'(\w+)\s*-->\s*(\w+)(?!;)', r'\1 --> \2;', mermaid_code)
         
-        # 중괄호 노드 정의 정리 (예: C{File Discovery} -> C{File Discovery})
+        # 7. 레이블이 있는 연결 구문의 따옴표 처리 (세미콜론 제외)
+        # 이미 따옴표로 감싸진 레이블은 제외
+        lines = mermaid_code.split('\n')
+        fixed_lines = []
+        for line in lines:
+            # 연결 구문이 있는 라인만 처리
+            if '-->' in line or ('--' in line and not line.strip().startswith('"')):
+                # 이미 따옴표로 감싸진 레이블이 있는지 확인
+                if '"' not in line:
+                    # 레이블이 있는 연결 구문 수정 (따옴표만 추가, 세미콜론 제외)
+                    line = re.sub(r'(\w+)\s*--\s*([^-]+?)\s*-->\s*(\w+)', r'\1 -- "\2" --> \3', line)
+            fixed_lines.append(line)
+        mermaid_code = '\n'.join(fixed_lines)
+        
+        # 8. 중괄호 노드 정의 정리 (예: C{File Discovery} -> C{File Discovery})
         mermaid_code = re.sub(r'(\w+)\s*\{\s*([^}]*)\s*\}', r'\1{\2}', mermaid_code)
         
-        # 빈 라인 정리
+        # 9. 빈 라인 정리
         mermaid_code = re.sub(r'\n\s*\n\s*\n', '\n\n', mermaid_code)
         
-        # 라인 정리 및 들여쓰기
+        # 10. 라인 정리 및 들여쓰기
         lines = mermaid_code.split('\n')
         cleaned_lines = []
         for line in lines:
@@ -147,6 +195,86 @@ class MermaidValidator:
                 cleaned_lines.append(line)
         
         return '\n'.join(cleaned_lines)
+    
+    def _fix_node_labels(self, mermaid_code: str) -> str:
+        """노드 레이블 내의 특수 문자 및 괄호 문제를 수정"""
+        
+        def fix_label(match):
+            """개별 노드 레이블을 수정"""
+            node_id = match.group(1)
+            label = match.group(2)
+            
+            # 레이블이 이미 따옴표로 감싸져 있으면 그대로 반환
+            if label.startswith('"') and label.endswith('"'):
+                return match.group(0)
+            
+            # 특수 문자나 괄호가 있는지 확인
+            needs_quotes = False
+            
+            # 1. 괄호 검사 - 균형 여부와 상관없이 괄호가 있으면 따옴표 필요
+            if '(' in label or ')' in label:
+                needs_quotes = True
+            
+            # 2. 괄호 불균형이면 수정
+            if label.count('(') != label.count(')'):
+                # 괄호 균형 맞추기
+                open_count = label.count('(')
+                close_count = label.count(')')
+                if open_count > close_count:
+                    label += ')' * (open_count - close_count)
+                elif close_count > open_count:
+                    label = '(' * (close_count - open_count) + label
+            
+            # 3. 특수 문자 검사 (/, --, +, 등)
+            if '/' in label or '--' in label or ':' in label or '+' in label:
+                needs_quotes = True
+            
+            # 4. 따옴표로 감싸기
+            if needs_quotes:
+                # 내부 따옴표 이스케이프
+                label = label.replace('"', '\\"')
+                return f'{node_id}["{label}"]'
+            
+            return match.group(0)
+        
+        # 대괄호 [] 노드 레이블 수정
+        mermaid_code = re.sub(r'(\w+)\[([^\]]+)\]', fix_label, mermaid_code)
+        
+        # 소괄호 () 노드 레이블 수정
+        def fix_round_label(match):
+            node_id = match.group(1)
+            label = match.group(2)
+            
+            if label.startswith('"') and label.endswith('"'):
+                return match.group(0)
+            
+            # 특수 문자 검사 (괄호, +, / 등)
+            if '(' in label or ')' in label or '/' in label or '--' in label or ':' in label or '+' in label:
+                label = label.replace('"', '\\"')
+                return f'{node_id}("{label}")'
+            
+            return match.group(0)
+        
+        mermaid_code = re.sub(r'(\w+)\(([^)]+)\)', fix_round_label, mermaid_code)
+        
+        # 중괄호 {} 노드 레이블 수정
+        def fix_curly_label(match):
+            node_id = match.group(1)
+            label = match.group(2)
+            
+            if label.startswith('"') and label.endswith('"'):
+                return match.group(0)
+            
+            # 특수 문자 검사
+            if '(' in label or ')' in label or '/' in label or '--' in label or ':' in label or '+' in label:
+                label = label.replace('"', '\\"')
+                return f'{node_id}{{"{label}"}}'
+            
+            return match.group(0)
+        
+        mermaid_code = re.sub(r'(\w+)\{([^}]+)\}', fix_curly_label, mermaid_code)
+        
+        return mermaid_code
     
     def validate_markdown_file(self, file_path: str) -> Dict[str, Any]:
         """Markdown 파일의 모든 Mermaid 다이어그램을 검증"""

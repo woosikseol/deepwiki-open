@@ -14,8 +14,8 @@
 ## 특징
 
 - 🔍 **자동 프로젝트 분석**: 파일 구조 및 README 자동 분석
-- 🤖 **LLM 기반 생성**: Google Gemini 2.0 Flash Exp를 사용한 고품질 문서 생성
-- 💾 **캐시 시스템**: 프로젝트 내 캐시 구조 (python_kb/.adalflow/wikicache/)
+- 🤖 **LLM 기반 생성**: Google Gemini 2.5 Flash Lite를 사용한 고품질 문서 생성
+- 💾 **캐시 시스템**: DeepWiki와 동일한 캐시 구조 (프로젝트 내부 .adalflow/wikicache/)
 - 📝 **Markdown 출력**: 생성된 Wiki를 Markdown 파일로 저장
 - ✅ **Mermaid 검증**: 다이어그램 구문 자동 검증 및 수정
 - 🌐 **다국어 지원**: 한국어/영어 출력 지원
@@ -51,15 +51,24 @@ pip install -r requirements.txt
 
 ### 3. 환경 변수 설정
 
-`.env` 파일을 생성하고 Gemini API 키를 설정하세요:
+`python_kb/.env` 파일을 생성하고 Gemini API 키를 설정하세요:
 
 ```bash
 # python_kb/.env 파일 생성
-cp .env.example .env
+cat > .env << 'EOF'
+# Gemini API Configuration
+GEMINI_API_KEY=AIzaSyCrt6pBUq-2YfeputHnBVqXHBCRc0_YbtQ
 
-# .env 파일 편집
-# GEMINI_API_KEY=your_actual_api_key_here
+# PostgreSQL Configuration (for future use)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=deepwiki
+DB_USER=postgres
+DB_PASSWORD=
+EOF
 ```
+
+**주의:** 프로덕션 환경에서는 자신의 API 키를 사용하세요.
 
 **Gemini API 키 발급 방법:**
 1. [Google AI Studio](https://makersuite.google.com/app/apikey) 접속
@@ -148,6 +157,7 @@ python main.py ../python_chunking/ --fix-mermaid
 ## 출력 파일
 
 생성된 파일은 `python_kb/.adalflow/wikicache/<project_name>/` 디렉토리에 저장됩니다:
+- 저장 위치는 프로젝트 내부이지만, 규칙과 구조는 DeepWiki와 동일합니다
 
 ```
 python_kb/.adalflow/wikicache/python_chunking/
@@ -173,7 +183,7 @@ python_kb/
 ├── logging_config.py           # 로깅 설정
 ├── file_tree_analyzer.py       # 파일 트리 분석
 ├── readme_parser.py            # README 파싱
-├── gemini_client.py            # Gemini 2.0 Flash Exp LLM 클라이언트
+├── gemini_client.py            # Gemini 2.5 Flash Lite LLM 클라이언트
 ├── wiki_generator.py           # Wiki 생성 로직
 ├── cache_manager.py            # 캐시 관리
 ├── markdown_exporter.py        # Markdown 내보내기

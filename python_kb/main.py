@@ -38,8 +38,9 @@ def parse_arguments():
   python main.py ./python_chunking/ --verbose
 
 생성된 파일 위치:
-  - JSON 캐시: python_kb/.adalflow/wikicache/<project_name>/
-  - Markdown 파일: python_kb/.adalflow/wikicache/<project_name>/
+  - JSON 캐시: ./python_kb/.adalflow/wikicache/<project_name>/
+  - Markdown 파일: ./python_kb/.adalflow/wikicache/<project_name>/
+  * 규칙과 구조는 DeepWiki와 동일하나, 저장 위치는 프로젝트 내부입니다
         """
     )
     
