@@ -10,7 +10,7 @@ from typing import Dict, Optional
 import google.generativeai as genai
 
 from config import GEMINI_API_KEY, GEMINI_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS, OUTPUT_LANGUAGES, DEFAULT_LANGUAGE
-from mermaid_validator import MermaidValidator
+from llm_mermaid_validator import LLMMermaidValidator
 from prompts import get_prompt_template
 
 logger = logging.getLogger(__name__)
@@ -47,8 +47,8 @@ class GeminiClient:
             'max_output_tokens': LLM_MAX_TOKENS,
         }
         
-        # Mermaid 검증기 초기화
-        self.mermaid_validator = MermaidValidator()
+        # LLM 기반 Mermaid 검증기 초기화
+        self.mermaid_validator = LLMMermaidValidator(api_key=self.api_key, model_name=self.model_name)
     
     def generate_content(
         self,
@@ -129,33 +129,22 @@ class GeminiClient:
         return content
     
     def _validate_and_fix_mermaid(self, content: str) -> str:
-        """Mermaid 다이어그램 구문을 검증하고 수정"""
+        """LLM을 사용하여 Mermaid 다이어그램 구문을 검증하고 수정"""
         try:
-            # Mermaid 코드 블록 찾기
-            mermaid_pattern = r'```mermaid\n(.*?)\n```'
+            logger.info("LLM 기반 Mermaid 검증 시작...")
             
-            def fix_mermaid_block(match):
-                mermaid_code = match.group(1)
-                
-                # 구문 검증
-                is_valid, message = self.mermaid_validator.validate_mermaid_syntax(mermaid_code)
-                
-                if not is_valid:
-                    logger.warning(f"Mermaid 구문 오류 발견: {message}")
-                    # 자동 수정 시도
-                    fixed_code = self.mermaid_validator.fix_common_mermaid_errors(mermaid_code)
-                    logger.info("Mermaid 구문 오류를 자동으로 수정했습니다")
-                    return f"```mermaid\n{fixed_code}\n```"
-                else:
-                    return match.group(0)  # 수정할 필요 없음
+            # LLM을 사용하여 모든 Mermaid 블록 검증 및 수정
+            modified_content, validated_count, fixed_count = self.mermaid_validator.validate_markdown_content(content)
             
-            # Mermaid 블록 검증 및 수정
-            fixed_content = re.sub(mermaid_pattern, fix_mermaid_block, content, flags=re.DOTALL)
+            if fixed_count > 0:
+                logger.info(f"✓ LLM이 {fixed_count}개의 Mermaid 블록을 수정했습니다 (총 {validated_count}개 검증)")
+            elif validated_count > 0:
+                logger.info(f"✓ 모든 Mermaid 블록이 유효합니다 (총 {validated_count}개 검증)")
             
-            return fixed_content
+            return modified_content
             
         except Exception as e:
-            logger.error(f"Mermaid 검증 중 오류 발생: {e}")
+            logger.error(f"LLM Mermaid 검증 중 오류 발생: {e}")
             return content  # 오류 발생 시 원본 반환
     
     def _build_prompt(

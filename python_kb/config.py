@@ -12,8 +12,8 @@ load_dotenv()
 
 # Gemini API 설정
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-# GEMINI_MODEL = "gemini-2.5-flash"  # 요구사항에 따라 gemini-2.5-flash 사용
-GEMINI_MODEL = "gemini-2.5-flash-lite"  # 요구사항에 따라 gemini-2.5-flash-lite 사용
+GEMINI_MODEL = "gemini-2.5-flash"  # 요구사항에 따라 gemini-2.5-flash 사용
+# GEMINI_MODEL = "gemini-2.5-flash-lite"  # 요구사항에 따라 gemini-2.5-flash-lite 사용
 
 # 다국어 지원 설정 (출력 언어)
 OUTPUT_LANGUAGES = {
@@ -118,6 +118,6 @@ WIKI_PAGES = {
 
 # LLM 설정
 LLM_LANGUAGE = 'en'  # 프롬프트는 영어로 고정
-LLM_TEMPERATURE = 0.7
-LLM_MAX_TOKENS = 4096
+LLM_TEMPERATURE = 0
+LLM_MAX_TOKENS = 8192
 

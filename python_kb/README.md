@@ -17,7 +17,7 @@
 - 🤖 **LLM 기반 생성**: Google Gemini 2.5 Flash Lite를 사용한 고품질 문서 생성
 - 💾 **캐시 시스템**: DeepWiki와 동일한 캐시 구조 (프로젝트 내부 .adalflow/wikicache/)
 - 📝 **Markdown 출력**: 생성된 Wiki를 Markdown 파일로 저장
-- ✅ **Mermaid 검증**: 다이어그램 구문 자동 검증 및 수정
+- ✅ **LLM 기반 Mermaid 검증**: LLM을 활용한 지능형 다이어그램 구문 검증 및 자동 수정
 - 🌐 **다국어 지원**: 한국어/영어 출력 지원
 - 🔄 **독립 실행**: python_chunking과 독립적으로 실행 가능
 

@@ -20,7 +20,7 @@ from pathlib import Path
 from logging_config import setup_logging
 from wiki_generator import WikiGenerator
 from config import CACHE_ROOT, GEMINI_API_KEY, OUTPUT_LANGUAGES, DEFAULT_LANGUAGE
-from mermaid_validator import MermaidValidator
+from llm_mermaid_validator import LLMMermaidValidator
 
 logger = logging.getLogger(__name__)
 
@@ -212,47 +212,60 @@ def main():
                 force_regenerate=force_regenerate
             )
         
-        # Mermaid 검증 및 수정
+        # LLM 기반 Mermaid 검증 및 수정
         if args.validate_mermaid or args.fix_mermaid:
-            logger.info("Mermaid 다이어그램 검증 시작...")
-            validator = MermaidValidator()
+            logger.info("LLM 기반 Mermaid 다이어그램 검증 시작...")
+            validator = LLMMermaidValidator()
             cache_dir = Path(summary['cache_dir'])
             
-            if args.fix_mermaid:
-                # 자동 수정 모드
-                fixed_files = []
-                for md_file in cache_dir.glob("*.md"):
-                    if validator.fix_markdown_file(str(md_file)):
-                        fixed_files.append(md_file.name)
-                
-                if fixed_files:
-                    logger.info(f"Mermaid 구문 오류가 수정된 파일: {', '.join(fixed_files)}")
-                else:
-                    logger.info("수정할 Mermaid 구문 오류가 없습니다")
+            total_validated = 0
+            total_fixed = 0
+            processed_files = []
             
-            if args.validate_mermaid:
-                # 검증 모드
-                validation_result = validator.validate_directory(str(cache_dir))
+            # 모든 마크다운 파일 처리
+            for md_file in cache_dir.glob("*.md"):
+                logger.info(f"처리 중: {md_file.name}")
                 
-                print("\n" + "=" * 50)
-                print("Mermaid 다이어그램 검증 결과")
-                print("=" * 50)
-                print(f"총 파일: {validation_result['total_files']}")
-                print(f"Mermaid 포함 파일: {validation_result['files_with_mermaid']}")
-                print(f"총 다이어그램 블록: {validation_result['total_blocks']}")
-                print(f"유효한 블록: {validation_result['valid_blocks']}")
-                print(f"무효한 블록: {validation_result['invalid_blocks']}")
+                try:
+                    with open(md_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # LLM으로 검증 및 수정
+                    modified_content, validated_count, fixed_count = validator.validate_markdown_content(content)
+                    
+                    total_validated += validated_count
+                    total_fixed += fixed_count
+                    
+                    if fixed_count > 0:
+                        # 수정된 내용을 파일에 저장
+                        with open(md_file, 'w', encoding='utf-8') as f:
+                            f.write(modified_content)
+                        processed_files.append((md_file.name, validated_count, fixed_count))
+                        logger.info(f"✓ {md_file.name}: {fixed_count}개 블록 수정됨")
+                    elif validated_count > 0:
+                        logger.info(f"✓ {md_file.name}: 모든 블록이 유효함")
                 
-                if validation_result['invalid_blocks'] > 0:
-                    print("\n❌ 구문 오류가 있는 파일:")
-                    for file_path, file_result in validation_result['file_results'].items():
-                        if file_result['invalid_blocks'] > 0:
-                            print(f"  📄 {Path(file_path).name}")
-                            for block_name, block_info in file_result['blocks'].items():
-                                if not block_info['valid']:
-                                    print(f"    ❌ {block_name}: {block_info['message']}")
+                except Exception as e:
+                    logger.error(f"파일 처리 중 오류 ({md_file.name}): {e}")
+            
+            # 결과 출력
+            print("\n" + "=" * 70)
+            print("LLM 기반 Mermaid 다이어그램 검증 결과")
+            print("=" * 70)
+            print(f"총 검증된 블록: {total_validated}개")
+            print(f"수정된 블록: {total_fixed}개")
+            
+            if processed_files:
+                print(f"\n수정된 파일:")
+                for filename, validated, fixed in processed_files:
+                    print(f"  ✓ {filename}: {fixed}/{validated}개 블록 수정됨")
+            else:
+                if total_validated > 0:
+                    print("\n✅ 모든 Mermaid 다이어그램이 이미 올바른 구문을 가지고 있습니다!")
                 else:
-                    print("\n✅ 모든 Mermaid 다이어그램이 올바른 구문을 가지고 있습니다!")
+                    print("\n⚠️  Mermaid 블록을 찾을 수 없습니다.")
+            
+            print("=" * 70)
         
         # 결과 출력
         print_summary(summary)
