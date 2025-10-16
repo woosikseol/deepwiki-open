@@ -49,7 +49,7 @@ class GeminiClient:
         try:
             # Set default generation config
             generation_config = {
-                "temperature": kwargs.get("temperature", 0.7),
+                "temperature": kwargs.get("temperature", 0.0),
                 "top_p": kwargs.get("top_p", 0.95),
                 "top_k": kwargs.get("top_k", 40),
                 "max_output_tokens": kwargs.get("max_output_tokens", 8192),

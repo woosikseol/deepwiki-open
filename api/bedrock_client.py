@@ -168,7 +168,7 @@ class BedrockClient(ModelClient):
                 "textGenerationConfig": {
                     "maxTokenCount": 4096,
                     "stopSequences": [],
-                    "temperature": 0.7,
+                    "temperature": 0.0,
                     "topP": 0.8
                 }
             }
@@ -177,7 +177,7 @@ class BedrockClient(ModelClient):
             return {
                 "prompt": prompt,
                 "max_tokens": 4096,
-                "temperature": 0.7,
+                "temperature": 0.0,
                 "p": 0.8
             }
         elif provider == "ai21":
@@ -185,7 +185,7 @@ class BedrockClient(ModelClient):
             return {
                 "prompt": prompt,
                 "maxTokens": 4096,
-                "temperature": 0.7,
+                "temperature": 0.0,
                 "topP": 0.8
             }
         else:

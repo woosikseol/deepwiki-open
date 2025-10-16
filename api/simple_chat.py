@@ -654,7 +654,7 @@ async def chat_completions_stream(request: ChatCompletionRequest):
                             fallback_model = genai.GenerativeModel(
                                 model_name=model_config["model"],
                                 generation_config={
-                                    "temperature": model_config["model_kwargs"].get("temperature", 0.7),
+                                    "temperature": model_config["model_kwargs"].get("temperature", 0.0),
                                     "top_p": model_config["model_kwargs"].get("top_p", 0.8),
                                     "top_k": model_config["model_kwargs"].get("top_k", 40)
                                 }
