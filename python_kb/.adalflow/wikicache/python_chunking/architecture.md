@@ -1,0 +1,322 @@
+---
+title: 전체 시스템 아키텍처 및 주요 기능에서 사용되는 디자인 패턴 (아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)
+project: python_chunking
+generated_at: 2025-10-18 16:15:29
+generator: Python Knowledge Base Generator
+---
+
+# 전체 시스템 아키텍처 및 디자인 패턴
+
+## 시스템 아키텍처 개요
+
+### 아키텍처 스타일
+`python_chunking` 프로젝트는 **파이프라인(Pipeline) 아키텍처**와 **계층형(Layered Architecture)** 스타일을 결합하여 코드 청킹 및 인덱싱 프로세스를 구현합니다. 핵심적으로는 데이터 처리 파이프라인의 형태를 띠며, 각 단계(파싱, 청킹, 임베딩, 저장, 관계 분석)가 명확하게 분리되어 순차적으로 데이터를 처리합니다. 또한, 데이터 접근 계층(PgVectorIndex), 비즈니스 로직 계층(청킹 로직), 유틸리티 계층(Tree-sitter 래퍼, 토큰 카운터) 등으로 구성된 계층형 구조를 가집니다.
+
+### 주요 아키텍처 결정
+1.  **Tree-sitter 기반 구조적 파싱**:
+    *   **결정**: C++ 기반의 Tree-sitter 파서를 사용하여 소스 코드를 AST(Abstract Syntax Tree)로 파싱합니다.
+    *   **근거**: 언어별 문법을 정확하게 이해하고, 코드의 구조적 의미를 보존하면서 청킹을 수행하기 위함입니다. 이는 단순한 텍스트 기반 청킹보다 훨씬 더 의미 있는 코드 조각을 생성할 수 있게 합니다. 다중 언어 지원을 용이하게 합니다.
+2.  **2단계 청킹 프로세스 (Pass 1: 단일 파일 분석, Pass 2: 크로스 파일 분석)**:
+    *   **결정**: 초기에는 개별 파일을 분석하여 기본 청크와 메타데이터를 추출하고, 이후 전체 프로젝트의 컨텍스트에서 파일 간의 관계(참조, 상속, 의존성)를 분석하여 메타데이터를 보강합니다.
+    *   **근거**: 단일 파일 분석만으로는 파악하기 어려운 코드베이스 전체의 심볼 관계 및 의존성을 정확하게 파악하여, 검색 및 활용 시 더 풍부한 컨텍스트를 제공하기 위함입니다.
+3.  **PgVector를 이용한 벡터 임베딩 및 저장**:
+    *   **결정**: PostgreSQL의 `pgvector` 확장을 사용하여 코드 청크의 벡터 임베딩을 저장하고 유사도 검색을 수행합니다.
+    *   **근거**: 코드 청크의 의미적 유사성을 기반으로 효율적인 검색을 가능하게 하며, 기존의 관계형 데이터베이스의 강력한 기능(트랜잭션, 인덱싱, JSONB 지원)과 벡터 검색 기능을 통합하여 관리의 복잡성을 줄입니다.
+4.  **JSONB를 활용한 유연한 메타데이터 저장**:
+    *   **결정**: 청크와 관련된 다양한 메타데이터(심볼, 임포트, 익스포트, 참조 관계 등)를 PostgreSQL의 JSONB 타입으로 저장합니다.
+    *   **근거**: 코드의 메타데이터는 언어별로, 또는 분석 단계별로 구조가 달라질 수 있으므로, 스키마 변경 없이 유연하게 데이터를 저장하고 쿼리할 수 있도록 합니다.
+
+### 컴포넌트 개요
+*   **파서 관리 (`setup_vendor.py`, `build_parsers.py`)**: Tree-sitter 파서 소스를 다운로드하고 컴파일하여 동적 라이브러리(`.so` 파일)를 생성합니다.
+*   **Tree-sitter 유틸리티 (`core.util.tree_sitter.py`)**: 컴파일된 Tree-sitter 파서와 Python 애플리케이션 간의 인터페이스를 제공하며, AST 생성 및 노드 탐색 기능을 캡슐화합니다.
+*   **청킹 로직 (`core.indexing.chunk/`)**:
+    *   `code.py`: Tree-sitter AST를 기반으로 구조적 코드 청킹을 수행합니다.
+    *   `basic.py`: 코드 파일이 아닌 경우(예: 마크다운, 텍스트 파일) 토큰 기반의 기본 청킹을 수행합니다.
+    *   `chunk.py`: 청킹 전략을 조정하고, `getSmartCollapsedChunks`와 같은 핵심 청킹 알고리즘을 포함합니다.
+    *   `metadata.py`: 청크에서 심볼, 임포트, 익스포트 등 메타데이터를 추출합니다.
+*   **임베딩 프로바이더 (`core.embeddings.embeddings_provider.py`)**: `sentence-transformers` 라이브러리를 사용하여 텍스트 청크를 고차원 벡터 임베딩으로 변환합니다.
+*   **벡터 인덱스 (`core.indexing.pgvector_index.py`, `core.indexing.lance_db_index.py`)**:
+    *   `PgVectorIndex`: PostgreSQL + pgvector 데이터베이스와의 상호작용을 담당하며, 청크 저장, 임베딩 저장, 유사도 검색 기능을 제공합니다.
+    *   `LanceDBIndex`: (대체 가능한) LanceDB를 사용한 인덱스 구현입니다.
+*   **LLM 유틸리티 (`core.llm.count_tokens.py`)**: 청크의 토큰 수를 계산하여 최대 청크 크기 제한을 관리합니다.
+*   **메인 애플리케이션 (`main.py`)**: 전체 인덱싱 프로세스를 오케스트레이션하며, 파일 시스템을 탐색하고 각 파일을 처리하도록 지시합니다.
+*   **데이터베이스 유틸리티 (`db_test.py`, `drop_table.py`)**: 데이터베이스 연결 테스트, 데이터 확인, 테이블 삭제 등 데이터베이스 관리 기능을 제공합니다.
+
+## 아키텍처 다이어그램
+
+### 고수준 아키텍처
+```mermaid
+graph TD
+    subgraph "사용자/클라이언트"
+        A["CLI (main.py)"]
+    end
+
+    subgraph "Python 청킹 시스템"
+        subgraph "코어 서비스"
+            B["파일 시스템 탐색"] --> C{"파일 타입 결정"}
+            C -- "코드 파일" --> D["Tree-sitter 파싱"]
+            C -- "비코드 파일" --> E["기본 청킹"]
+            D --> F["스마트 청킹 & 메타데이터 추출"]
+            E --> F
+            F --> G["토큰 카운팅"]
+            G --> H["임베딩 생성"]
+            H --> I["PgVector 인덱스"]
+            I --> J["크로스 파일 분석"]
+        end
+    end
+
+    subgraph "외부 의존성"
+        K["Tree-sitter 파서 (C++)"]
+        L["PostgreSQL + PgVector"]
+        M["Hugging Face (임베딩 모델)"]
+    end
+
+    A --> B
+    D -- "사용" --> K
+    H -- "사용" --> M
+    I -- "저장/검색" --> L
+    J -- "업데이트" --> L
+```
+
+### 컴포넌트 상호작용
+```mermaid
+graph TD
+    A[main.py] --> B{PgVectorIndex.initialize()}
+    A --> C{PgVectorIndex.get_chunks(file_item, content)}
+    A --> D{PgVectorIndex.get_embeddings(chunks)}
+    A --> E{PgVectorIndex.insert_chunks(chunks, embeddings)}
+    A --> F{PgVectorIndex.retrieve(query)}
+
+    B --> G["DB 연결 및 테이블 확인"]
+    C --> H[Chunking Logic (core.indexing.chunk)]
+    H --> I[Tree-sitter Util (core.util.tree_sitter)]
+    H --> J[LLM Token Counter (core.llm.count_tokens)]
+    D --> K[EmbeddingsProvider.get_embeddings()]
+    K --> L[SentenceTransformer Model]
+    E --> M["PostgreSQL DB (chunks 테이블)"]
+    F --> M
+
+    I -- "파싱" --> N["컴파일된 Tree-sitter 파서"]
+    L -- "모델 로드" --> O["Hugging Face 모델"]
+
+    subgraph "core.indexing.pgvector_index.py"
+        B
+        C
+        D
+        E
+        F
+    end
+    subgraph "core.indexing.chunk/"
+        H
+    end
+    subgraph "core.embeddings/"
+        K
+    end
+    subgraph "core.util/"
+        I
+    end
+    subgraph "core.llm/"
+        J
+    end
+```
+
+### 모듈 의존성
+```mermaid
+graph TD
+    subgraph "python_chunking"
+        A[main.py]
+        B[db_test.py]
+        C[drop_table.py]
+        D[setup_vendor.py]
+        E[build_parsers.py]
+    end
+
+    subgraph "core"
+        F[core.index]
+        subgraph "core.embeddings"
+            G[embeddings_provider.py]
+            H[simple_embeddings.py]
+        end
+        subgraph "core.indexing"
+            I[pgvector_index.py]
+            J[lance_db_index.py]
+            subgraph "core.indexing.chunk"
+                K[chunk.py]
+                L[code.py]
+                M[basic.py]
+                N[metadata.py]
+            end
+        end
+        subgraph "core.llm"
+            O[count_tokens.py]
+        end
+        subgraph "core.util"
+            P[tree_sitter.py]
+            Q[uri.py]
+        end
+    end
+
+    A --> F
+    A --> I
+    A --> G
+    B --> I
+    C --> I
+
+    I --> F
+    I --> G
+    I --> K
+    I --> O
+    I --> Q
+
+    K --> L
+    K --> M
+    K --> N
+    K --> P
+    K --> O
+    K --> Q
+
+    L --> P
+    L --> N
+    M --> O
+
+    G --> H
+
+    P -- "컴파일된 파서 로드" --> R[vendor/tree-sitter-*]
+
+    D --> R
+    E --> R
+```
+
+## 디자인 패턴
+
+### 1. 전략 패턴 (Strategy Pattern)
+*   **유형**: 행동 (Behavioral)
+*   **위치**: `core/indexing/chunk/` 디렉토리 (`chunk.py`, `code.py`, `basic.py`)
+*   **목적**: 파일의 유형(코드 파일 또는 비코드 파일)에 따라 청킹 로직을 유연하게 변경하기 위함입니다. 청킹 알고리즘을 클라이언트 코드로부터 분리하여, 새로운 청킹 방식을 쉽게 추가하거나 기존 방식을 수정할 수 있도록 합니다.
+*   **구현**:
+    *   `chunk.py`는 `getSmartCollapsedChunks`와 같은 핵심 청킹 로직을 포함하며, 내부적으로 파일 타입에 따라 `code.py`의 `CodeChunker` 또는 `basic.py`의 `BasicChunker`와 같은 구체적인 청킹 전략을 선택하여 사용합니다.
+    *   `CodeChunker`는 Tree-sitter를 활용한 구조적 청킹을, `BasicChunker`는 토큰 기반의 일반 청킹을 구현합니다.
+    *   `PgVectorIndex`와 같은 상위 모듈은 특정 청킹 구현에 직접 의존하지 않고, `chunk` 모듈의 추상화된 인터페이스를 통해 청킹을 요청합니다.
+
+### 2. 리포지토리 패턴 (Repository Pattern)
+*   **유형**: 구조 (Structural) / 데이터 접근 (Data Access)
+*   **위치**: `core/indexing/pgvector_index.py` (및 `core/indexing/lance_db_index.py`)
+*   **목적**: 애플리케이션의 비즈니스 로직을 데이터 영속성 계층으로부터 분리하기 위함입니다. 이를 통해 데이터 저장 방식(예: PostgreSQL, LanceDB)이 변경되더라도 핵심 로직에 미치는 영향을 최소화하고, 테스트 용이성을 높입니다.
+*   **구현**:
+    *   `PgVectorIndex` 클래스는 `Chunk` 객체와 관련된 데이터베이스 작업(삽입, 검색, 초기화 등)을 캡슐화합니다.
+    *   `insert_chunks`, `retrieve`, `initialize`와 같은 메서드를 통해 데이터베이스에 직접 접근하는 SQL 쿼리나 ORM 로직을 숨깁니다.
+    *   `PgVectorIndex`는 `EmbeddingsProvider`와 `chunk` 모듈을 사용하여 청크를 준비하고 저장하는 과정을 조율합니다.
+
+### 3. 퍼사드 패턴 (Facade Pattern)
+*   **유형**: 구조 (Structural)
+*   **위치**: `main.py`, `core/indexing/pgvector_index.py`
+*   **목적**: 복잡한 서브시스템(파싱, 청킹, 임베딩, 데이터베이스 상호작용)에 대한 단순화된 인터페이스를 제공하여, 클라이언트 코드가 서브시스템의 복잡성을 직접 다루지 않도록 합니다.
+*   **구현**:
+    *   `PgVectorIndex`는 청킹 로직, 임베딩 생성, 데이터베이스 저장 및 검색 등 여러 하위 시스템의 기능을 통합하여 `get_chunks`, `get_embeddings`, `insert_chunks`, `retrieve`와 같은 고수준의 메서드를 제공합니다.
+    *   `main.py`는 `PgVectorIndex`의 메서드를 호출함으로써, 파일 시스템 탐색, 청킹, 임베딩, 저장이라는 복잡한 전체 인덱싱 프로세스를 몇 줄의 코드로 실행할 수 있습니다.
+
+## 주요 기능 아키텍처
+
+### 기능 1: 코드 파일 인덱싱 (Pass 1: 단일 파일 분석)
+
+#### 아키텍처
+이 기능은 개별 소스 코드 파일을 분석하여 구조적 청크를 생성하고, 관련 메타데이터와 벡터 임베딩을 추출하여 데이터베이스에 저장하는 파이프라인 형태의 아키텍처를 가집니다. 각 단계는 명확히 분리되어 있으며, 비동기적으로 실행될 수 있도록 설계되었습니다.
+
+#### 흐름 다이어그램
+```mermaid
+sequenceDiagram
+    participant CLI as "사용자/CLI (main.py)"
+    participant Index as PgVectorIndex
+    participant Chunker as "Chunking Logic (core.indexing.chunk)"
+    participant TreeSitter as "Tree-sitter Util (core.util.tree_sitter)"
+    participant Embedder as EmbeddingsProvider
+    participant DB as "PostgreSQL + PgVector"
+
+    CLI->>Index: "initialize()"
+    Index->>DB: "DB 연결 및 테이블 확인"
+    CLI->>Index: "get_chunks(file_item, content)"
+    Index->>Chunker: "get_chunks(content, lang)"
+    Chunker->>TreeSitter: "parse_code(content, lang)"
+    TreeSitter->>TreeSitter: "컴파일된 파서 로드"
+    TreeSitter-->>Chunker: "AST 반환"
+    Chunker->>Chunker: "AST 기반 스마트 청킹 (getSmartCollapsedChunks)"
+    Chunker->>Chunker: "메타데이터 추출 (심볼, 임포트 등)"
+    Chunker-->>Index: "청크 리스트 반환 (Chunk 객체)"
+    CLI->>Index: "get_embeddings(chunks)"
+    Index->>Embedder: "get_embeddings(chunk_contents)"
+    Embedder->>Embedder: "SentenceTransformer 모델 로드"
+    Embedder-->>Index: "임베딩 벡터 리스트 반환"
+    CLI->>Index: "insert_chunks(chunks, embeddings)"
+    Index->>DB: "청크 및 임베딩 저장 (INSERT INTO chunks)"
+    DB-->>Index: "저장 완료"
+    Index-->>CLI: "작업 완료"
+```
+
+#### 핵심 컴포넌트
+*   `main.py`: 인덱싱 프로세스의 시작점 및 오케스트레이터.
+*   `core.indexing.pgvector_index.py`: 데이터베이스 상호작용, 청킹 및 임베딩 프로세스 조율.
+*   `core.indexing.chunk/`: 파일 타입에 따른 청킹 전략 선택 및 실제 청킹 로직 구현.
+*   `core.util.tree_sitter.py`: Tree-sitter 파서 래퍼, AST 생성.
+*   `core.embeddings.embeddings_provider.py`: 텍스트를 벡터 임베딩으로 변환.
+*   `PostgreSQL + PgVector`: 청크 데이터 및 임베딩 벡터 저장소.
+
+### 기능 2: 크로스 파일 분석 (Pass 2)
+
+#### 아키텍처
+이 기능은 Pass 1에서 저장된 단일 파일 청크의 메타데이터를 활용하여, 코드베이스 전체에 걸친 파일 간의 관계(예: `referenced_by`, `subclasses`, `dependencies`, `dependents`)를 분석하고, 이 정보를 기존 청크의 메타데이터에 업데이트하는 후처리 아키텍처입니다. 이는 전체 코드베이스의 심볼 맵을 구축하는 과정을 포함합니다.
+
+#### 흐름 다이어그램
+```mermaid
+sequenceDiagram
+    participant CLI as "사용자/CLI (main.py)"
+    participant Index as PgVectorIndex
+    participant Analyzer as "CrossFileAnalyzer (가상 컴포넌트)"
+    participant DB as PostgreSQL + PgVector
+
+    CLI->>Index: "(Pass 1 완료 후)"
+    Index->>DB: "모든 청크의 메타데이터 조회"
+    DB-->>Index: "메타데이터 리스트 반환"
+    Index->>Analyzer: "analyze_cross_file_relations(all_metadata)"
+    Analyzer->>Analyzer: "심볼 맵 구축"
+    Analyzer->>Analyzer: "각 청크별 참조, 상속, 의존성 분석"
+    Analyzer-->>Index: "업데이트된 메타데이터 반환"
+    Index->>DB: "업데이트된 메타데이터 저장 (UPDATE chunks)"
+    DB-->>Index: "업데이트 완료"
+    Index-->>CLI: "크로스 파일 분석 완료"
+```
+*   **참고**: `CrossFileAnalyzer`는 README에 설명된 기능이지만, 현재 제공된 파일 구조에서는 명시적인 모듈로 나타나지 않습니다. 이는 `PgVectorIndex` 내부 로직의 일부이거나, 별도의 스크립트/모듈로 구현될 수 있습니다. 여기서는 개념적 컴포넌트로 표현했습니다.
+
+#### 핵심 컴포넌트
+*   `core.indexing.pgvector_index.py`: 모든 청크 메타데이터 조회 및 업데이트된 메타데이터 저장.
+*   (가상의) `CrossFileAnalyzer` 모듈: 심볼 맵 구축 및 파일 간 관계 분석 로직.
+*   `PostgreSQL + PgVector`: 관계 분석을 위한 메타데이터 조회 및 업데이트된 메타데이터 저장소.
+
+## 아키텍처 고려사항
+
+### 확장성 (Scalability)
+*   **장점**:
+    *   **PgVector의 HNSW 인덱스**: 대규모 벡터 데이터에 대한 효율적인 유사도 검색을 지원하여 검색 성능을 유지합니다.
+    *   **모듈화된 디자인**: 청킹, 임베딩, 인덱싱 컴포넌트가 분리되어 있어, 필요에 따라 특정 컴포넌트의 스케일 아웃(예: 임베딩 서비스 분리)을 고려할 수 있습니다.
+    *   **데이터베이스 선택의 유연성**: `PgVectorIndex`와 `LanceDBIndex`가 공존하는 것은 향후 더 확장성 있는 벡터 데이터베이스로의 전환 가능성을 시사합니다.
+*   **고려사항**:
+    *   **단일 PostgreSQL 인스턴스**: 매우 큰 코드베이스(수백만 파일)를 인덱싱할 경우, 단일 PostgreSQL 인스턴스가 병목 지점이 될 수 있습니다. 이 경우, 분산 데이터베이스 솔루션이나 샤딩 전략을 고려해야 합니다.
+    *   **Tree-sitter 파싱**: 파일당 CPU 집약적인 작업이므로, 대량의 파일을 병렬 처리할 때 시스템 리소스가 중요합니다.
+
+### 유지보수성 (Maintainability)
+*   **장점**:
+    *   **명확한 관심사 분리**: 파싱, 청킹, 임베딩, 데이터베이스 상호작용 등 각 기능이 별도의 모듈과 클래스로 잘 분리되어 있어, 특정 기능의 변경이 다른 부분에 미치는 영향을 최소화합니다.
+    *   **원본 프로젝트 구조 유지**: TypeScript 기반의 원본 Continue 프로젝트의 구조를 Python으로 포팅하여, 원본 프로젝트의 지식을 활용하거나 두 프로젝트 간의 동기화를 용이하게 합니다.
+    *   **JSONB 메타데이터**: 스키마 변경 없이 메타데이터 구조를 유연하게 관리할 수 있어, 새로운 메타데이터 필드 추가 시 코드 변경을 줄일 수 있습니다.
+*   **고려사항**:
+    *   **Tree-sitter 파서 의존성**: C++ 기반의 Tree-sitter 파서에 대한 의존성은 빌드 및 배포 프로세스를 복잡하게 만들 수 있으며, 파서 업데이트 시 호환성 문제를 야기할 수 있습니다.
+    *   **크로스 파일 분석의 복잡성**: 파일 간의 관계를 분석하는 로직은 본질적으로 복잡하며, 코드베이스가 커질수록 디버깅 및 유지보수가 어려워질 수 있습니다.
+
+### 확장성 (Extensibility)
+*   **장점**:
+    *   **다중 언어 지원**: Tree-sitter 기반이므로, 새로운 언어에 대한 Tree-sitter 파서만 추가하면 쉽게 지원 언어를 확장할 수 있습니다.
+    *   **플러그인 가능한 임베딩 모델**: `EmbeddingsProvider`는 `sentence-transformers`를 추상화하므로, 다른 임베딩 모델이나 서비스로 쉽게 교체할 수 있습니다.
+    *   **교체 가능한 벡터 데이터베이스**: `PgVectorIndex`와 `LanceDBIndex`의 존재는 다른 벡터 데이터베이스(예: Chroma, Pinecone)로의 확장을 위한 좋은 기반을 제공합니다.
+    *   **청킹 전략의 유연성**: 전략 패턴을 통해 새로운 청킹 알고리즘(예: 특정 프레임워크에 특화된 청킹)을 쉽게 추가할 수 있습니다.
+*   **고려사항**:
+    *   **Tree-sitter의 한계**: Tree-sitter가 지원하지 않는 언어나, AST 기반 분석만으로는 어려운 고수준의 의미론적 분석(예: 디자인 패턴 감지)을 추가하려면 아키텍처의 상당한 변경이 필요할 수 있습니다.
+    *   **메타데이터 스키마 진화**: JSONB는 유연하지만, 메타데이터 구조가 너무 복잡해지면 쿼리 성능 저하나 관리의 어려움이 발생할 수 있습니다. 명확한 메타데이터 스키마 가이드라인이 필요할 수 있습니다.
