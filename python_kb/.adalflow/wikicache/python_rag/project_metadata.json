@@ -1,0 +1,30 @@
+{
+  "project_name": "python_rag",
+  "project_path": "/Users/woosik/repository/deepwiki-open/python_rag",
+  "statistics": {
+    "total_files": 12,
+    "code_files": 6,
+    "doc_files": 6,
+    "languages": {
+      "python": 6
+    },
+    "total_size": 59183
+  },
+  "readme_title": "python_rag",
+  "readme_sections": [
+    "Overview",
+    "Features",
+    "Prerequisites",
+    "Installation",
+    "Usage",
+    "Architecture",
+    "Configuration",
+    "Integration with python_chunking",
+    "Dependencies",
+    "Troubleshooting",
+    "Development",
+    "License",
+    "Related Projects",
+    "Contributing"
+  ]
+}

@@ -1,0 +1,185 @@
+---
+title: 환경 설정 및 가이드
+project: python_rag
+generated_at: 2025-10-18 15:17:59
+generator: Python Knowledge Base Generator
+---
+
+# 환경 설정 및 가이드
+
+이 문서는 `python_rag` 프로젝트 개발을 위한 개발 환경 설정 방법을 안내합니다.
+
+## 사전 요구 사항
+
+### 시스템 요구 사항
+- 운영 체제: macOS, Linux, Windows (가상 환경 활성화 스크립트 지원)
+- Python 버전: **Python 3.11.9**
+- 기타 도구:
+    - **PostgreSQL** (pgvector 확장 기능 포함)
+    - **Git** (저장소 복제를 위해)
+    - **`python_chunking` 프로젝트** (코드베이스 인덱싱을 위해 필요)
+
+### 필수 의존성
+`python_rag` 프로젝트는 다음 주요 Python 라이브러리에 의존합니다:
+- `google-generativeai`: Gemini API 클라이언트
+- `sentence-transformers`: 임베딩 모델 (all-MiniLM-L6-v2)
+- `psycopg2-binary`: PostgreSQL 어댑터
+- `pgvector`: PostgreSQL 벡터 확장 지원
+- `jinja2`: 프롬프트 템플릿 엔진
+- `python-dotenv`: 환경 변수 관리
+
+## 설치 가이드
+
+### 1단계: Python 3.11.9 설치
+운영 체제에 맞는 방법으로 Python 3.11.9를 설치합니다.
+- **macOS**: Homebrew를 사용하여 `brew install python@3.11`
+- **Windows**: [Python 공식 웹사이트](https://www.python.org/downloads/release/python-3119/)에서 설치 프로그램 다운로드
+- **Linux**: 시스템 패키지 관리자 또는 `pyenv`와 같은 도구 사용
+
+### 2단계: PostgreSQL 및 pgvector 확장 설치
+PostgreSQL 데이터베이스 서버를 설치하고 `pgvector` 확장을 활성화해야 합니다.
+- **PostgreSQL 설치**: 운영 체제에 맞는 [PostgreSQL 공식 문서](https://www.postgresql.org/download/)를 참조하여 설치합니다.
+- **pgvector 확장 활성화**: PostgreSQL 설치 후, 데이터베이스에 연결하여 다음 명령을 실행하여 `pgvector` 확장을 생성합니다.
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+**참고**: `python_rag`는 `python_chunking` 프로젝트에서 생성된 `chunks` 테이블을 사용합니다. `python_chunking` 프로젝트의 가이드를 따라 데이터베이스를 설정하고 코드베이스를 인덱싱해야 합니다.
+
+### 3단계: 저장소 복제
+프로젝트 저장소를 로컬 머신으로 복제합니다.
+```bash
+git clone https://github.com/your-org/python_rag.git # 실제 저장소 URL로 대체
+cd python_rag
+```
+
+### 4단계: 가상 환경 생성 및 활성화
+프로젝트 종속성을 격리하기 위해 가상 환경을 생성하고 활성화합니다.
+```bash
+python3.11 -m venv .venv
+# macOS/Linux
+source .venv/bin/activate
+# Windows
+# .venv\Scripts\activate
+```
+
+### 5단계: 의존성 설치
+가상 환경이 활성화된 상태에서 `requirements.txt`에 명시된 모든 Python 의존성을 설치합니다.
+```bash
+pip install -r requirements.txt
+```
+
+### 6단계: 환경 설정
+
+#### 환경 변수
+`.env.example` 파일을 `.env`로 복사하고 필요한 환경 변수를 구성합니다.
+```bash
+cp .env.example .env
+```
+`.env` 파일을 열어 다음 변수들을 설정합니다:
+```
+# .env
+GEMINI_API_KEY=your_gemini_api_key_here # Gemini API 키를 입력하세요.
+
+# PostgreSQL 설정
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=code_chunks # python_chunking에서 사용한 데이터베이스 이름과 일치해야 합니다.
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# RAG 설정 (필요에 따라 조정)
+DEFAULT_LANGUAGE=ko
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+TOP_K_RESULTS=10
+```
+**중요**: `GEMINI_API_KEY`는 Gemini API를 사용하기 위해 필수적입니다. [Google AI Studio](https://aistudio.google.com/app/apikey)에서 발급받을 수 있습니다. PostgreSQL 설정은 로컬 환경에 맞게 조정해야 합니다.
+
+#### 설정 파일
+프로젝트의 주요 설정은 `.env` 파일을 통해 관리됩니다. `api/config.py` 파일은 이 환경 변수들을 로드하여 애플리케이션 전반에 걸쳐 사용합니다. 별도의 설정 파일 수정은 일반적으로 필요하지 않습니다.
+
+## 설치 확인
+
+### 설치 확인
+가상 환경이 활성화된 상태에서 프로젝트의 도움말을 실행하여 기본 설치를 확인합니다.
+```bash
+python main.py --help
+```
+**예상되는 결과**: `main.py` 스크립트의 사용법과 옵션 목록이 출력됩니다.
+
+### 테스트 실행
+현재 프로젝트에는 테스트 스위트가 `TODO` 상태이지만, 향후 테스트가 추가되면 다음 명령으로 실행할 수 있습니다.
+```bash
+# TODO: 테스트 스위트가 구현되면 이 명령을 사용합니다.
+pytest tests/
+```
+
+### 예상되는 결과
+성공적으로 환경이 설정되었다면, `python main.py "질문"` 명령을 실행했을 때 코드베이스에 대한 답변을 받을 수 있습니다.
+```bash
+python main.py "이 코드베이스는 무엇을 하는 프로젝트인가요?"
+```
+**예상되는 출력**: 질문에 대한 답변과 함께 `results/rag_analysis_YYYYMMDD_HHMMSS.md` 파일이 생성됩니다.
+
+## 개발 워크플로우
+
+### 프로젝트 실행
+
+#### 개발 모드
+개발 중에는 가상 환경을 활성화한 후 `main.py` 스크립트를 직접 실행하여 RAG 시스템을 사용할 수 있습니다.
+```bash
+# 가상 환경 활성화 (아직 하지 않았다면)
+source .venv/bin/activate
+
+# 기본 질문 실행
+python main.py "이 프로젝트의 주요 구성 요소는 무엇인가요?"
+
+# 다양한 옵션을 사용하여 질문 실행
+python main.py "RAG 클래스의 answer 메서드는 어떻게 동작하나요?" --language en --verbose --top-k 5
+```
+
+#### 운영 모드
+`python_rag`는 CLI 기반 도구이므로, 별도의 "운영 모드" 배포 프로세스는 없습니다. 개발 모드와 동일하게 가상 환경을 활성화하고 `main.py` 스크립트를 실행합니다. 다만, 운영 환경에서는 `.env` 파일의 `GEMINI_API_KEY` 및 `DB_` 관련 설정이 올바르게 구성되어 있는지 확인하는 것이 중요합니다.
+
+### 자주 사용되는 명령어
+- `python main.py "질문"`: 기본 질문을 실행하고 결과를 `results/` 디렉토리에 저장합니다.
+- `python main.py "질문" --language [언어코드]`: 답변 언어를 지정합니다 (예: `en`, `ko`, `ja`).
+- `python main.py "질문" --top-k [숫자]`: 검색할 컨텍스트 청크의 수를 제어합니다.
+- `python main.py "질문" --verbose`: 상세한 컨텍스트 정보를 함께 표시합니다.
+- `python main.py "질문" --debug`: 디버그 로깅을 활성화합니다.
+- `python main.py "질문" --output [파일경로]`: 결과를 특정 파일에 저장합니다.
+
+## 문제 해결
+
+### 문제 1: 데이터베이스 연결 오류
+**문제**: `Error: could not connect to server` 또는 유사한 메시지가 표시됩니다.
+**해결책**:
+1.  PostgreSQL 서버가 실행 중인지 확인합니다.
+2.  `.env` 파일의 `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` 설정이 올바른지 확인합니다.
+3.  `DB_NAME`으로 지정된 데이터베이스가 존재하며, `pgvector` 확장이 활성화되어 있는지 확인합니다.
+
+### 문제 2: 컨텍스트를 찾을 수 없음
+**문제**: `죄송합니다. 관련된 정보를 찾을 수 없습니다.` 또는 유사한 메시지가 표시됩니다.
+**해결책**:
+1.  `python_chunking` 프로젝트를 사용하여 코드베이스를 인덱싱했는지 확인합니다.
+2.  `python_chunking`이 `DB_NAME`에 지정된 동일한 데이터베이스에 청크를 저장했는지 확인합니다.
+3.  질문이 인덱싱된 코드베이스와 관련이 있는지 확인합니다.
+
+### 문제 3: Gemini API 오류
+**문제**: `Error: API key is invalid` 또는 `Authentication Error` 메시지가 표시됩니다.
+**해결책**:
+1.  `.env` 파일의 `GEMINI_API_KEY`가 올바르고 유효한 Gemini API 키인지 확인합니다.
+2.  API 키에 필요한 권한이 부여되어 있는지 확인합니다.
+3.  네트워크 연결에 문제가 없는지 확인합니다.
+
+## 추가 자료
+- **`python_chunking` 프로젝트**: [저장소 링크](https://github.com/your-org/python_chunking) (코드베이스 인덱싱을 위한 필수 프로젝트)
+- **Gemini API 문서**: [Google AI Studio](https://aistudio.google.com/app/apikey)
+- **PostgreSQL 공식 문서**: [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- **pgvector GitHub 저장소**: [pgvector](https://github.com/pgvector/pgvector)
+
+## 개발 팁
+- **IDE 사용**: VS Code, PyCharm과 같은 통합 개발 환경(IDE)을 사용하면 코드 탐색, 디버깅 및 가상 환경 관리가 용이합니다.
+- **가상 환경**: 항상 가상 환경을 활성화한 상태에서 개발 작업을 수행하여 프로젝트 종속성 충돌을 방지하세요.
+- **코드 스타일**: 이 프로젝트는 상위 `deepwiki-open` 프로젝트의 코드 스타일 컨벤션을 따릅니다. 일관된 코드 스타일을 유지하는 것이 중요합니다.
+- **`.env` 관리**: `.env` 파일은 민감한 정보를 포함하므로, 버전 관리 시스템에 커밋하지 않도록 `.gitignore`에 추가되어 있는지 확인하세요.
