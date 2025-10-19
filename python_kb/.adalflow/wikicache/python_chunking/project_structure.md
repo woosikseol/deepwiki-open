@@ -1,7 +1,7 @@
 ---
 title: 프로젝트 구조 및 개요 (주요 기능 포함, 아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)
 project: python_chunking
-generated_at: 2025-10-18 16:15:29
+generated_at: 2025-10-19 18:46:52
 generator: Python Knowledge Base Generator
 ---
 
@@ -82,52 +82,52 @@ generator: Python Knowledge Base Generator
 
 ```mermaid
 graph TD
-    subgraph "사용자 인터페이스"
+    subgraph 사용자 인터페이스
         A["CLI / main.py"]
     end
 
-    subgraph "코드 소스"
+    subgraph 코드 소스
         B["코드 파일들"]
     end
 
-    subgraph "Tree-sitter 파서"
+    subgraph Tree-sitter 파서
         C1["Python 파서"]
         C2["JavaScript 파서"]
         C3["Java 파서"]
-        C4[...]
+        C4["..."]
     end
 
-    subgraph "핵심 청킹 및 인덱싱 시스템"
+    subgraph 핵심 청킹 및 인덱싱 시스템
         D["Tree-sitter 유틸리티 (core.util.tree_sitter)"]
         E["청킹 로직 (core.indexing.chunk)"]
         F["임베딩 프로바이더 (core.embeddings)"]
         G["PgVector 인덱스 (core.indexing.pgvector_index)"]
     end
 
-    subgraph "데이터베이스"
+    subgraph 데이터베이스
         H["PostgreSQL + pgvector DB"]
     end
 
-    A -- "인덱싱 요청" --> G
-    A -- "검색 요청" --> G
+    A -- 인덱싱 요청 --> G
+    A -- 검색 요청 --> G
 
-    B -- "코드 내용" --> E
-    E -- "파싱 요청" --> D
-    D -- "언어별 파서 로드" --> C1 & C2 & C3 & C4
-    D -- "AST 반환" --> E
-    E -- "청크 및 메타데이터" --> G
-    G -- "임베딩 생성 요청" --> F
-    F -- "벡터 임베딩" --> G
-    G -- "청크, 메타데이터, 임베딩 저장/업데이트" --> H
-    H -- "검색 결과" --> G
-    G -- "검색 결과" --> A
+    B -- 코드 내용 --> E
+    E -- 파싱 요청 --> D
+    D -- 언어별 파서 로드 --> C1 & C2 & C3 & C4
+    D -- AST 반환 --> E
+    E -- 청크 및 메타데이터 --> G
+    G -- 임베딩 생성 요청 --> F
+    F -- 벡터 임베딩 --> G
+    G -- 청크, 메타데이터, 임베딩 저장/업데이트 --> H
+    H -- 검색 결과 --> G
+    G -- 검색 결과 --> A
 
     subgraph "크로스 파일 분석 (Pass 2)"
         I["심볼 맵 구축 및 관계 분석"]
     end
-    H -- "모든 청크 메타데이터" --> I
-    I -- "업데이트된 메타데이터" --> G
-    G -- "메타데이터 업데이트" --> H
+    H -- 모든 청크 메타데이터 --> I
+    I -- 업데이트된 메타데이터 --> G
+    G -- 메타데이터 업데이트 --> H
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
     style G fill:#bbf,stroke:#333,stroke-width:2px
@@ -138,7 +138,7 @@ graph TD
 
 ```mermaid
 graph TD
-    subgraph "최상위 스크립트"
+    subgraph 최상위 스크립트
         main_py[main.py]
         setup_vendor_py[setup_vendor.py]
         build_parsers_py[build_parsers.py]
@@ -146,7 +146,7 @@ graph TD
         drop_table_py[drop_table.py]
     end
 
-    subgraph "core 패키지"
+    subgraph core 패키지
         subgraph core.index
             core_index[index.py]
         end
@@ -177,8 +177,8 @@ graph TD
         end
     end
 
-    subgraph "vendor 패키지"
-        vendor_parsers["Tree-sitter 파서 소스"]
+    subgraph vendor 패키지
+        vendor_parsers[Tree-sitter 파서 소스]
     end
 
     main_py --> pgvector_index

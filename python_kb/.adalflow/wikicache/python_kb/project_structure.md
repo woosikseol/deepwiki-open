@@ -1,255 +1,223 @@
 ---
 title: 프로젝트 구조 및 개요 (주요 기능 포함, 아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)
 project: python_kb
-generated_at: 2025-10-17 04:52:18
+generated_at: 2025-10-19 18:37:42
 generator: Python Knowledge Base Generator
 ---
 
 # 프로젝트 구조 및 개요
 
 ## 개요
-`python_kb`는 로컬 프로젝트의 구조를 분석하고, Google Gemini 2.5 Flash Lite LLM(Large Language Model)을 활용하여 Knowledge Base 문서를 자동으로 생성하는 도구입니다. Deepwiki 프로젝트의 변환 과정을 참조하여 개발되었으며, 다음 네 가지 유형의 Wiki 페이지를 Markdown 형식으로 출력합니다: 프로젝트 구조 및 주요 기능, 시스템 아키텍처 및 디자인 패턴, 명명 및 코딩 규칙, 환경 설정 가이드.
-
-주요 특징으로는 자동 프로젝트 분석, LLM 기반의 고품질 문서 생성, DeepWiki와 동일한 캐시 시스템, Markdown 출력, LLM 기반의 지능형 Mermaid 다이어그램 구문 검증 및 자동 수정, 그리고 한국어/영어 다국어 지원 등이 있습니다. `python_chunking` 프로젝트와 독립적으로 실행 가능하며, Python, Java, JavaScript, TypeScript 프로젝트를 지원합니다.
+`python_kb` 프로젝트는 로컬 프로젝트의 파일 구조를 분석하고, Google Gemini 2.5 Flash Lite LLM을 활용하여 프로젝트에 대한 지식 기반(Knowledge Base) 문서를 자동으로 생성하는 도구입니다. 이 도구는 Deepwiki 프로젝트의 문서 변환 과정을 참조하여 개발되었으며, "Project Structure & Overview", "Overall System Architecture & Design Patterns", "Conventions", "Environment Setting and Guide"와 같은 Wiki 페이지를 Markdown 형식으로 출력합니다.
 
 ## 프로젝트 구조
 
 ### 디렉토리 구성
-`python_kb` 프로젝트는 대부분의 소스 파일이 최상위 디렉토리에 평면적으로 구성되어 있습니다.
-*   `python_kb/`: 프로젝트의 모든 소스 코드와 설정 파일이 위치하는 루트 디렉토리입니다.
-*   `python_kb/.adalflow/wikicache/`: (런타임 시 생성) 생성된 Wiki 문서와 캐시 데이터가 저장되는 디렉토리입니다. 분석 대상 프로젝트별로 하위 디렉토리가 생성됩니다 (예: `python_kb/.adalflow/wikicache/python_chunking/`).
+`python_kb` 프로젝트는 단일 Python 패키지로 구성되어 있으며, 모든 소스 코드는 `python_kb/` 디렉토리 내에 평면적으로 배치되어 있습니다. 생성된 Wiki 문서 및 관련 메타데이터는 분석 대상 프로젝트 내의 `.adalflow/wikicache/` 디렉토리에 저장되어 DeepWiki의 캐시 구조를 따릅니다.
 
-### 주요 구성 요소 (모듈)
-프로젝트의 핵심 기능을 담당하는 주요 Python 모듈은 다음과 같습니다:
-
-*   **`main.py`**: 프로젝트의 진입점(Entry Point)이자 CLI(Command Line Interface)를 제공합니다. 전체 워크플로우를 오케스트레이션하며, 사용자 입력 및 옵션을 처리합니다.
-*   **`config.py`**: 환경 변수 로드 및 애플리케이션 전반에 걸친 설정 값(예: API 키, 캐시 경로, 제외 규칙)을 관리합니다.
-*   **`prompts.py`**: LLM(Google Gemini)에 전달될 다양한 Wiki 페이지 생성용 프롬프트 템플릿을 정의합니다. LLM의 출력 품질에 직접적인 영향을 미칩니다.
-*   **`logging_config.py`**: 애플리케이션의 로깅 시스템을 설정하여 실행 중 발생하는 정보를 기록하고 관리합니다.
-*   **`file_tree_analyzer.py`**: 분석 대상 프로젝트의 파일 시스템을 탐색하고, 디렉토리 및 파일 구조, 코드 언어 등을 분석하여 구조화된 데이터를 생성합니다.
-*   **`readme_parser.py`**: 분석 대상 프로젝트의 `README.md` 파일을 파싱하여 프로젝트 개요, 특징, 설치 방법 등 핵심 정보를 추출합니다.
-*   **`gemini_client.py`**: Google Gemini 2.5 Flash Lite LLM API와 통신하는 인터페이스를 제공합니다. 프롬프트를 전송하고 LLM의 응답을 처리합니다.
-*   **`wiki_generator.py`**: `file_tree_analyzer.py`와 `readme_parser.py`에서 얻은 분석 데이터를 기반으로 `gemini_client.py`를 통해 LLM을 호출하여 실제 Wiki 페이지 내용을 생성하는 핵심 로직을 담당합니다.
-*   **`cache_manager.py`**: 생성된 Wiki 내용(JSON 형식) 및 프로젝트 메타데이터를 캐시 디렉토리(`python_kb/.adalflow/wikicache/`)에 저장하고, 필요시 로드하여 재활용하는 기능을 관리합니다.
-*   **`markdown_exporter.py`**: `wiki_generator.py`에서 생성된 Wiki 내용을 표준 Markdown 파일(`.md`)로 변환하여 캐시 디렉토리에 저장합니다.
-*   **`mermaid_validator.py`**: 생성된 Wiki 내용에 포함된 Mermaid 다이어그램의 구문 유효성을 기본적인 규칙에 따라 검증합니다.
-*   **`llm_mermaid_validator.py`**: `mermaid_validator.py`에서 발견된 복잡한 Mermaid 구문 오류를 LLM(`gemini_client.py` 사용)을 통해 지능적으로 분석하고 자동으로 수정하는 기능을 제공합니다.
+### 주요 구성 요소
+*   **`main.py`**: 프로젝트의 진입점입니다. 명령줄 인자를 파싱하고, 로깅을 설정하며, 프로젝트 분석, Wiki 생성, 캐싱 및 Markdown 내보내기 과정을 총괄합니다.
+*   **`config.py`**: 환경 변수(`GEMINI_API_KEY` 등)를 로드하고, 프로젝트 전반에 걸쳐 사용되는 설정 값을 관리합니다.
+*   **`prompts.py`**: LLM(Large Language Model)에 전달될 프롬프트 템플릿을 정의합니다. 다양한 Wiki 페이지 유형(프로젝트 구조, 아키텍처 등)에 대한 프롬프트가 포함되어 있습니다.
+*   **`logging_config.py`**: 애플리케이션의 로깅 시스템을 설정합니다. 상세 로그 출력(`--verbose`) 옵션과 연동됩니다.
+*   **`file_tree_analyzer.py`**: 대상 프로젝트의 파일 시스템을 탐색하고, 디렉토리 및 파일 구조를 분석하여 LLM이 이해할 수 있는 형태로 변환합니다. 특정 디렉토리 및 파일은 제외 규칙에 따라 분석에서 제외됩니다.
+*   **`readme_parser.py`**: 대상 프로젝트의 `README.md` 파일을 파싱하여 주요 정보(개요, 특징 등)를 추출합니다.
+*   **`gemini_client.py`**: Google Gemini 2.5 Flash Lite LLM과의 통신을 담당하는 클라이언트 모듈입니다. 프롬프트를 LLM에 전송하고 응답을 받아옵니다.
+*   **`wiki_generator.py`**: `file_tree_analyzer`와 `readme_parser`의 분석 결과를 바탕으로 `gemini_client`를 통해 LLM에 Wiki 콘텐츠 생성을 요청하고, 응답을 처리합니다. 캐시 관리 및 Mermaid 다이어그램 검증 로직과 연동됩니다.
+*   **`cache_manager.py`**: 생성된 Wiki 콘텐츠(JSON 형식)를 로컬 파일 시스템에 캐시하고, 필요할 때 캐시된 데이터를 로드하는 역할을 합니다. DeepWiki와 동일한 캐시 구조를 사용합니다.
+*   **`markdown_exporter.py`**: 생성된 Wiki 콘텐츠를 최종 Markdown 파일로 변환하여 지정된 출력 디렉토리에 저장합니다.
+*   **`llm_mermaid_validator.py`**: LLM이 생성한 Mermaid 다이어그램 구문을 검증하고, Mermaid CLI를 통한 실제 렌더링을 시도하여 오류를 확인하고 필요한 경우 LLM을 통해 자동 수정합니다.
 
 ### 중요 파일
-프로젝트의 동작에 핵심적인 역할을 하는 파일들은 다음과 같습니다:
-
-*   **`main.py`**: 프로젝트 실행의 시작점이며, 모든 기능의 흐름을 제어합니다.
-*   **`requirements.txt`**: 프로젝트가 의존하는 모든 Python 패키지 목록을 정의하여 환경 설정의 일관성을 보장합니다.
-*   **`.env.example`**: 환경 변수 설정의 예시를 제공하여 사용자가 API 키와 같은 민감 정보를 쉽게 설정할 수 있도록 돕습니다. 실제 사용 시에는 `.env` 파일로 복사하여 사용합니다.
-*   **`config.py`**: 애플리케이션의 전역 설정을 중앙에서 관리하여 코드의 유지보수성을 높입니다.
-*   **`prompts.py`**: LLM의 응답 품질을 결정하는 핵심 요소로, 다양한 Wiki 페이지 유형에 맞는 프롬프트 템플릿을 포함합니다.
+*   **`main.py`**: 애플리케이션의 시작점 및 전체 워크플로우를 제어합니다.
+*   **`config.py`**: 환경 변수 및 핵심 설정을 관리하여 애플리케이션의 동작을 정의합니다.
+*   **`requirements.txt`**: 프로젝트의 Python 의존성 패키지 목록을 정의합니다.
+*   **`.env.example`**: 환경 변수 설정의 예시를 제공하며, 실제 `.env` 파일은 민감한 정보를 포함합니다.
 
 ## 주요 기능
 
 ### 1. 자동 프로젝트 분석
-*   **설명**: 대상 로컬 프로젝트의 파일 시스템 구조와 `README.md` 파일을 자동으로 분석하여 프로젝트의 핵심 메타데이터와 구조 정보를 추출합니다.
-*   **구현**: `file_tree_analyzer.py`가 디렉토리 탐색 및 파일 유형 식별을 담당하고, `readme_parser.py`가 `README.md` 파일의 내용을 파싱하여 구조화된 데이터를 생성합니다.
-*   **관련 파일**: `file_tree_analyzer.py`, `readme_parser.py`, `main.py` (분석 시작 및 결과 전달).
+-   **설명**: 대상 프로젝트의 파일 시스템 구조와 `README.md` 파일을 자동으로 분석하여 LLM이 Wiki 콘텐츠를 생성하는 데 필요한 정보를 수집합니다.
+-   **구현**: `file_tree_analyzer.py`는 지정된 경로의 디렉토리와 파일을 재귀적으로 탐색하며, `.git`, `node_modules`, `__pycache__` 등 미리 정의된 제외 규칙에 따라 불필요한 파일을 걸러냅니다. `readme_parser.py`는 `README.md` 파일의 내용을 읽어 주요 섹션을 추출합니다.
+-   **관련 파일**: `file_tree_analyzer.py`, `readme_parser.py`, `config.py` (제외 규칙 정의)
 
-### 2. LLM 기반 문서 생성
-*   **설명**: Google Gemini 2.5 Flash Lite LLM을 활용하여 분석된 프로젝트 정보를 바탕으로 고품질의 Wiki 문서를 자동으로 생성합니다.
-*   **구현**: `gemini_client.py`가 LLM API와의 통신을 처리하고, `prompts.py`에 정의된 템플릿을 사용하여 `wiki_generator.py`가 최종 Wiki 내용을 생성합니다.
-*   **관련 파일**: `gemini_client.py`, `prompts.py`, `wiki_generator.py`.
+### 2. LLM 기반 고품질 문서 생성
+-   **설명**: Google Gemini 2.5 Flash Lite LLM을 사용하여 분석된 프로젝트 정보를 바탕으로 "Project Structure & Overview", "Overall System Architecture & Design Patterns" 등 4가지 유형의 Wiki 페이지를 자동으로 생성합니다.
+-   **구현**: `wiki_generator.py`가 분석 결과를 `prompts.py`에 정의된 템플릿과 결합하여 `gemini_client.py`를 통해 Gemini API에 요청을 보냅니다. LLM의 응답을 받아 Wiki 콘텐츠로 가공합니다.
+-   **관련 파일**: `wiki_generator.py`, `gemini_client.py`, `prompts.py`, `config.py` (API 키 설정)
 
 ### 3. 캐시 시스템
-*   **설명**: DeepWiki와 동일한 캐시 구조를 채택하여, 이전에 생성된 Wiki 내용과 메타데이터를 `.adalflow/wikicache/` 디렉토리에 저장하고 재활용합니다. 이를 통해 불필요한 LLM 호출을 줄여 비용과 시간을 절약합니다.
-*   **구현**: `cache_manager.py`가 캐시 파일의 읽기, 쓰기, 유효성 검사를 담당합니다. `--no-cache`, `--force`, `--cache-only`와 같은 CLI 옵션을 통해 캐시 동작을 제어할 수 있습니다.
-*   **관련 파일**: `cache_manager.py`, `main.py` (캐시 옵션 처리), `wiki_generator.py` (캐시 활용 로직).
+-   **설명**: 한 번 생성된 Wiki 콘텐츠(JSON 형식)를 로컬 파일 시스템에 캐시하여, 동일한 프로젝트에 대해 다시 문서를 생성할 때 LLM 호출 없이 빠르게 결과를 제공합니다. DeepWiki와 동일한 캐시 구조를 사용합니다.
+-   **구현**: `cache_manager.py`가 캐시 파일의 저장 및 로드 로직을 담당합니다. `--no-cache` 또는 `--force` 옵션을 통해 캐시 사용 여부를 제어할 수 있습니다.
+-   **관련 파일**: `cache_manager.py`, `main.py` (캐시 옵션 처리)
 
 ### 4. Markdown 출력
-*   **설명**: LLM을 통해 생성된 Wiki 페이지 내용을 표준 Markdown 파일(`.md`) 형식으로 변환하여 지정된 캐시 디렉토리에 저장합니다.
-*   **구현**: `markdown_exporter.py`가 LLM으로부터 받은 텍스트를 Markdown 형식으로 포맷팅하고 파일 시스템에 저장하는 역할을 수행합니다.
-*   **관련 파일**: `markdown_exporter.py`, `wiki_generator.py`.
+-   **설명**: 생성된 Wiki 콘텐츠를 표준 Markdown 파일 형식으로 변환하여 지정된 캐시 디렉토리에 저장합니다.
+-   **구현**: `markdown_exporter.py`가 JSON 형식의 Wiki 데이터를 Markdown 문자열로 변환하고, 이를 파일로 저장합니다.
+-   **관련 파일**: `markdown_exporter.py`, `wiki_generator.py`
 
-### 5. LLM 기반 Mermaid 검증 및 수정
-*   **설명**: 생성된 Wiki 문서에 포함된 Mermaid 다이어그램의 구문 오류를 지능적으로 검증하고, 필요시 LLM을 활용하여 자동으로 수정합니다.
-*   **구현**: `mermaid_validator.py`가 기본적인 Mermaid 구문 검증을 수행하며, `llm_mermaid_validator.py`는 LLM을 호출하여 복잡하거나 의미론적인 오류를 수정합니다. `--validate-mermaid` 및 `--fix-mermaid` 옵션으로 이 기능을 활성화할 수 있습니다.
-*   **관련 파일**: `mermaid_validator.py`, `llm_mermaid_validator.py`, `gemini_client.py`, `main.py` (옵션 처리).
+### 5. 실제 렌더링 기반 Mermaid 다이어그램 검증 및 자동 수정
+-   **설명**: LLM이 생성한 Mermaid 다이어그램 구문의 유효성을 검증하고, Mermaid CLI를 사용하여 실제 렌더링을 시도합니다. 구문 오류가 발견되면 LLM을 다시 호출하여 오류를 수정합니다.
+-   **구현**: `llm_mermaid_validator.py`가 Mermaid CLI를 호출하여 렌더링을 시도하고, 실패 시 LLM에 오류 메시지와 함께 수정 요청을 보냅니다. 이를 통해 생성된 다이어그램의 품질과 정확성을 보장합니다.
+-   **관련 파일**: `llm_mermaid_validator.py`, `wiki_generator.py`, `gemini_client.py`
 
 ### 6. 다국어 지원
-*   **설명**: 생성되는 Wiki 문서의 언어를 한국어 또는 영어로 선택할 수 있도록 지원합니다.
-*   **구현**: `prompts.py` 내에 언어별로 정의된 프롬프트 템플릿이 있으며, `main.py`의 `--language` CLI 옵션을 통해 원하는 출력 언어를 선택합니다.
-*   **관련 파일**: `prompts.py`, `main.py`.
+-   **설명**: 생성되는 Wiki 문서의 언어를 한국어 또는 영어로 선택할 수 있습니다.
+-   **구현**: `main.py`에서 `--language` 옵션을 통해 언어를 지정하며, `prompts.py`에서 해당 언어에 맞는 프롬프트 템플릿을 사용하여 LLM에 요청을 보냅니다.
+-   **관련 파일**: `main.py`, `prompts.py`
+
+### 7. 독립 실행
+-   **설명**: `python_chunking` 프로젝트와 독립적으로 실행될 수 있도록 설계되어, 어떤 로컬 프로젝트든 분석하여 Wiki를 생성할 수 있습니다.
+-   **구현**: `main.py`가 `project_path` 인자를 받아 대상 프로젝트를 지정하며, 내부적으로 필요한 모든 의존성을 관리합니다.
+-   **관련 파일**: `main.py`
 
 ## 아키텍처 다이어그램
 
 ```mermaid
 graph TD
-    subgraph 사용자 인터페이스
-        A["사용자/CLI"]
+    subgraph "사용자 인터페이스"
+        A["사용자"]
     end
 
-    subgraph 핵심 워크플로우
-        B("main.py: 워크플로우 오케스트레이터")
+    subgraph "핵심 로직"
+        B(main.py)
+        C(config.py)
+        D(logging_config.py)
+        E(file_tree_analyzer.py)
+        F(readme_parser.py)
+        G(wiki_generator.py)
+        H(cache_manager.py)
+        I(markdown_exporter.py)
+        J(llm_mermaid_validator.py)
     end
 
-    subgraph 프로젝트 분석
-        C{"대상 프로젝트 파일 시스템"}
-        D["file_tree_analyzer.py: 파일 구조 분석"]
-        E["readme_parser.py: README 파싱"]
+    subgraph "LLM 서비스"
+        K(gemini_client.py)
+        L[Google Gemini API]
     end
 
-    subgraph LLM 서비스
-        F["gemini_client.py: Gemini LLM API"]
+    subgraph "데이터 저장소"
+        M["대상 프로젝트 파일"]
+        N["캐시 디렉토리 (.adalflow/wikicache/)"]
+        O["출력 Markdown 파일"]
     end
 
-    subgraph Wiki 생성 및 관리
-        G("wiki_generator.py: Wiki 생성 로직")
-        H["cache_manager.py: 캐시 관리"]
-        I["markdown_exporter.py: Markdown 내보내기"]
-        J["mermaid_validator.py: Mermaid 구문 검증"]
-        K["llm_mermaid_validator.py: LLM 기반 수정"]
-    end
-
-    subgraph 출력 및 캐시 저장소
-        L[".adalflow/wikicache/: 캐시 & 출력 디렉토리"]
-    end
-
-    A --> B
-    B --> C
-    C --> D
-    C --> E
-
-    D -- "분석 결과" --> G
-    E -- "파싱된 README" --> G
-
-    G -- "생성 요청 + 프롬프트" --> F
-    F -- "LLM 응답" --> G
-
-    G -- "생성된 Wiki 내용" --> H
-    H -- "캐시 저장/로드" --> L
-
-    G -- "최종 Wiki 내용" --> I
-    I -- "Markdown 파일" --> L
-
-    G -- "다이어그램 내용" --> J
-    J -- "검증 결과/수정 요청" --> K
-    K -- "LLM 호출" --> F
-    K -- "수정된 다이어그램" --> G
-
-    L -- "생성된 Wiki 파일" --> A
+    A -- "실행" --> B
+    B -- "설정 로드" --> C
+    B -- "로깅 초기화" --> D
+    B -- "분석 요청" --> E
+    B -- "분석 요청" --> F
+    E -- "읽기" --> M
+    F -- "읽기" --> M
+    E & F -- "분석 결과 전달" --> G
+    G -- "Wiki 생성 요청" --> K
+    K -- "API 호출" --> L
+    L -- "응답" --> K
+    K -- "LLM 응답 전달" --> G
+    G -- "캐시 저장 요청" --> H
+    H -- "쓰기/읽기" --> N
+    G -- "Mermaid 검증 요청" --> J
+    J -- "검증 요청" --> L
+    J -- "검증 결과" --> G
+    G -- "Markdown 내보내기 요청" --> I
+    I -- "쓰기" --> O
+    B -- "캐시 확인" --> H
+    B -- "최종 출력" --> O
 ```
 
 ## 모듈 다이어그램
 
 ```mermaid
-graph TD
-    subgraph Entry Point & Configuration
-        A[main.py]
-        B[config.py]
-        C[logging_config.py]
-        D[prompts.py]
+graph LR
+    subgraph "Core"
+        main
+        config
+        logging_config
     end
 
-    subgraph Project Analysis
-        E[file_tree_analyzer.py]
-        F[readme_parser.py]
+    subgraph "Analysis"
+        file_tree_analyzer
+        readme_parser
     end
 
-    subgraph LLM Services
-        G[gemini_client.py]
+    subgraph "Generation"
+        wiki_generator
+        prompts
+        gemini_client
     end
 
-    subgraph Wiki Processing
-        H[wiki_generator.py]
-        I[cache_manager.py]
-        J[markdown_exporter.py]
+    subgraph "Output & Utility"
+        cache_manager
+        markdown_exporter
+        llm_mermaid_validator
     end
 
-    subgraph Diagram Validation & Correction
-        K[mermaid_validator.py]
-        L[llm_mermaid_validator.py]
-    end
+    main --> config
+    main --> logging_config
+    main --> file_tree_analyzer
+    main --> readme_parser
+    main --> wiki_generator
+    main --> cache_manager
+    main --> markdown_exporter
+    main --> llm_mermaid_validator
 
-    A --> B
-    A --> C
-    A --> E
-    A --> F
-    A --> H
+    wiki_generator --> gemini_client
+    wiki_generator --> prompts
+    wiki_generator --> cache_manager
+    wiki_generator --> llm_mermaid_validator
 
-    H --> D
-    H --> G
-    H --> I
-    H --> J
-
-    K --> L
-    L --> G
-
-    E -- "분석 데이터" --> H
-    F -- "README 데이터" --> H
-    G -- "LLM 응답" --> H
-    H -- "캐시 데이터" --> I
-    H -- "Markdown 데이터" --> J
-    J -- "다이어그램 내용" --> K
-    K -- "수정 요청" --> L
+    gemini_client --> config
+    cache_manager --> config
+    markdown_exporter --> config
+    llm_mermaid_validator --> config
 ```
 
-## 흐름 다이어그램
+## 데이터/실행 흐름 다이어그램
 
 ```mermaid
 graph TD
-    start(("시작")) --> A["CLI 명령 실행 (main.py)"]
-    A --> B{"프로젝트 경로 유효성 검사"}
-    B -- "유효하지 않음" --> Z("오류 종료")
-    B -- "유효함" --> C["환경 변수 로드 (config.py)"]
-    C --> D["로깅 설정 (logging_config.py)"]
-    D --> E["캐시 확인 (cache_manager.py)"]
+    A["시작: 사용자 main.py 실행"] --> B{"인자 파싱 및 설정 로드"}
+    B --> C("로깅 초기화")
+    C --> D{"캐시 확인?"}
+    D -- "예 (캐시 존재)" --> E{"--cache-only 옵션?"}
+    E -- "예" --> F("캐시에서 Markdown 내보내기")
+    E -- "아니오" --> G{"--no-cache 또는 --force 옵션?"}
+    G -- "예" --> H("프로젝트 분석")
+    G -- "아니오" --> H("프로젝트 분석")
+    D -- "아니오 (캐시 없음)" --> H("프로젝트 분석")
 
-    E -- "캐시 유효 & --cache-only" --> F["캐시에서 Wiki 로드"]
-    E -- "캐시 유효 & !--force" --> G["캐시에서 Wiki 로드"]
-    E -- "캐시 없음 또는 --force" --> H["프로젝트 분석"]
+    H --> I("파일 트리 분석")
+    H --> J("README 파싱")
+    I & J --> K("Wiki 콘텐츠 생성 요청")
+    K --> L("LLM 호출 (Gemini API)")
+    L --> M("LLM 응답 수신")
+    M --> N("Mermaid 다이어그램 검증")
+    N -- "오류 발견" --> O("LLM에 수정 요청")
+    O --> M
+    N -- "오류 없음" --> P("생성된 콘텐츠 캐시")
+    P --> Q("Markdown 파일로 내보내기")
+    Q --> R["종료"]
 
-    H --> I["파일 트리 분석 (file_tree_analyzer.py)"]
-    H --> J["README 파싱 (readme_parser.py)"]
-    I -- "파일 구조 데이터" --> K["Wiki 생성 (wiki_generator.py)"]
-    J -- "README 데이터" --> K
-
-    K --> L["LLM 호출 (gemini_client.py) + 프롬프트 (prompts.py)"]
-    L -- "LLM 응답" --> M["생성된 Wiki 내용"]
-
-    M --> N{"Mermaid 다이어그램 포함 여부?"}
-    N -- "예" --> O["Mermaid 구문 검증 (mermaid_validator.py)"]
-    O --> P{"LLM 기반 수정 필요 (--fix-mermaid)?"}
-    P -- "예" --> Q["LLM 기반 Mermaid 수정 (llm_mermaid_validator.py)"]
-    P -- "아니오" --> R["최종 Wiki 내용"]
-    Q -- "수정된 다이어그램" --> R
-    N -- "아니오" --> R
-
-    R --> S["Wiki 내용 캐시 저장 (cache_manager.py)"]
-    S --> T["Markdown 파일 내보내기 (markdown_exporter.py)"]
-    T --> U["생성된 파일 확인 안내"]
-    U --> endNode(("종료"))
-
-    F --> T
-    G --> T
+    F --> R
 ```
 
 ## 파일 구조 상세
-
 ```
 python_kb/
-├── __init__.py                 # Python 패키지 초기화 파일
-├── main.py                     # 프로젝트의 메인 실행 스크립트, CLI 인터페이스 및 전체 워크플로우 제어
-├── config.py                   # 환경 변수 및 기타 설정 값 관리
-├── prompts.py                  # LLM (Gemini)에 전달될 프롬프트 템플릿 정의 (DeepWiki 참조)
-├── logging_config.py           # 애플리케이션 로깅 설정
-├── file_tree_analyzer.py       # 대상 프로젝트의 파일 및 디렉토리 구조를 분석
-├── readme_parser.py            # 대상 프로젝트의 README.md 파일을 파싱하여 주요 정보 추출
-├── gemini_client.py            # Google Gemini 2.5 Flash Lite LLM API와 통신하는 클라이언트
-├── wiki_generator.py           # 분석된 데이터를 기반으로 LLM을 활용하여 Wiki 페이지를 생성하는 핵심 로직
-├── cache_manager.py            # 생성된 Wiki 내용 및 메타데이터를 캐시하고 관리
-├── markdown_exporter.py        # 생성된 Wiki 내용을 Markdown 파일로 변환하여 저장
-├── mermaid_validator.py        # 생성된 Mermaid 다이어그램의 구문 유효성을 검증
-├── llm_mermaid_validator.py    # LLM을 사용하여 Mermaid 다이어그램 구문 오류를 지능적으로 수정
-├── requirements.txt            # 프로젝트 의존성 Python 패키지 목록
-├── .env.example                # 환경 변수 설정 예시 파일
-├── README.md                   # 이 프로젝트에 대한 설명 문서
-├── LLM_MERMAID_VALIDATOR_GUIDE.md # LLM 기반 Mermaid 검증 기능에 대한 가이드 문서
-├── test_example.py             # 예시 테스트 파일 (개발/디버깅용)
-└── test_llm_validator.py       # LLM 기반 Mermaid 검증 기능에 대한 테스트 파일
+├── README.md                   # 프로젝트에 대한 설명, 기능, 설치 및 사용법을 담고 있는 문서
+├── __init__.py                 # python_kb 디렉토리를 Python 패키지로 인식하게 하는 파일
+├── cache_manager.py            # 생성된 Wiki 콘텐츠를 캐시하고 관리하는 로직 포함
+├── config.py                   # 환경 변수 로드 및 애플리케이션 전반의 설정 관리
+├── file_tree_analyzer.py       # 대상 프로젝트의 파일 및 디렉토리 구조를 분석하는 모듈
+├── gemini_client.py            # Google Gemini LLM API와 통신하는 클라이언트
+├── llm_mermaid_validator.py    # LLM이 생성한 Mermaid 다이어그램의 유효성을 검증하고 수정하는 모듈
+├── logging_config.py           # 애플리케이션의 로깅 설정을 정의
+├── main.py                     # 프로젝트의 메인 실행 파일이자 진입점
+├── markdown_exporter.py        # 생성된 Wiki 콘텐츠를 Markdown 형식으로 변환하여 내보내는 모듈
+├── prompts.py                  # LLM에 전달될 다양한 Wiki 페이지 유형별 프롬프트 템플릿 정의
+├── readme_parser.py            # 대상 프로젝트의 README.md 파일을 파싱하여 주요 정보를 추출
+├── requirements.txt            # 프로젝트의 Python 의존성 패키지 목록
+├── test_example.py             # 예시 테스트 파일 (개발 중 사용될 수 있음)
+├── test_llm_validator.py       # llm_mermaid_validator 모듈에 대한 테스트 파일
+└── wiki_generator.py           # 프로젝트 분석 결과를 바탕으로 LLM을 통해 Wiki 콘텐츠를 생성하는 핵심 로직
 ```

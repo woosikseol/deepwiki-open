@@ -2,13 +2,13 @@
   "project_name": "python_kb",
   "project_path": "/Users/woosik/repository/deepwiki-open/python_kb",
   "statistics": {
-    "total_files": 18,
-    "code_files": 15,
-    "doc_files": 3,
+    "total_files": 16,
+    "code_files": 14,
+    "doc_files": 2,
     "languages": {
-      "python": 15
+      "python": 14
     },
-    "total_size": 124933
+    "total_size": 109061
   },
   "readme_title": "Python Knowledge Base Generator",
   "readme_sections": [

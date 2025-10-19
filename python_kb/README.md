@@ -17,7 +17,7 @@
 - 🤖 **LLM 기반 생성**: Google Gemini 2.5 Flash Lite를 사용한 고품질 문서 생성
 - 💾 **캐시 시스템**: DeepWiki와 동일한 캐시 구조 (프로젝트 내부 .adalflow/wikicache/)
 - 📝 **Markdown 출력**: 생성된 Wiki를 Markdown 파일로 저장
-- ✅ **LLM 기반 Mermaid 검증**: LLM을 활용한 지능형 다이어그램 구문 검증 및 자동 수정
+- ✅ **실제 렌더링 기반 Mermaid 검증**: Mermaid CLI를 통한 실제 렌더링으로 구문 오류 확인 및 자동 수정
 - 🌐 **다국어 지원**: 한국어/영어 출력 지원
 - 🔄 **독립 실행**: python_chunking과 독립적으로 실행 가능
 
@@ -49,7 +49,34 @@ pip install -r requirements.txt
 - `google-generativeai>=0.8.0` - Gemini API
 - `python-dotenv>=1.0.0` - 환경 변수 관리
 
-### 3. 환경 변수 설정
+### 3. Mermaid CLI 및 Chrome 설정
+
+Mermaid CLI가 다이어그램을 렌더링하려면 Chrome이 필요합니다.
+
+```bash
+# 프로젝트 루트로 이동
+cd /Users/woosik/repository/deepwiki-open
+
+# Puppeteer Chrome 설치
+npx puppeteer browsers install chrome
+```
+
+설치 후 `.puppeteerrc.cjs` 파일이 자동으로 생성되며, Mermaid CLI가 Chrome을 찾을 수 있도록 경로를 지정합니다.
+
+**테스트:**
+```bash
+echo "graph TD
+    A[Start] --> B[End]" > /tmp/test.mmd
+mmdc -i /tmp/test.mmd -o /tmp/test.svg
+```
+
+성공하면 `Generating single mermaid chart` 메시지가 표시됩니다.
+
+**문제 해결:**
+- Chrome 버전 확인: `ls ~/.cache/puppeteer/chrome/`
+- 재설치: `rm -rf ~/.cache/puppeteer/chrome && npx puppeteer browsers install chrome`
+
+### 4. 환경 변수 설정
 
 `python_kb/.env` 파일을 생성하고 Gemini API 키를 설정하세요:
 
@@ -146,13 +173,9 @@ python main.py ../python_chunking/ --cache-only
 
 # 영어로 출력
 python main.py ../python_chunking/ --language en
-
-# Mermaid 다이어그램 구문 검증
-python main.py ../python_chunking/ --validate-mermaid
-
-# Mermaid 구문 오류 자동 수정
-python main.py ../python_chunking/ --fix-mermaid
 ```
+
+**참고:** Mermaid 다이어그램이 발견되면 자동으로 실제 렌더링을 통해 검증하고 오류를 수정합니다.
 
 ## 출력 파일
 
@@ -187,7 +210,7 @@ python_kb/
 ├── wiki_generator.py           # Wiki 생성 로직
 ├── cache_manager.py            # 캐시 관리
 ├── markdown_exporter.py        # Markdown 내보내기
-├── mermaid_validator.py        # Mermaid 다이어그램 구문 검증
+├── llm_mermaid_validator.py    # LLM 기반 Mermaid 다이어그램 검증 (실제 렌더링)
 ├── requirements.txt            # Python 패키지 의존성
 ├── .env.example                # 환경 변수 예시
 └── README.md                   # 이 파일

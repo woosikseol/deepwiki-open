@@ -1,7 +1,7 @@
 ---
 title: 프로젝트 구조 및 개요 (주요 기능 포함, 아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)
 project: python_rag
-generated_at: 2025-10-18 15:17:59
+generated_at: 2025-10-19 18:50:27
 generator: Python Knowledge Base Generator
 ---
 
@@ -81,27 +81,27 @@ generator: Python Knowledge Base Generator
 
 ```mermaid
 graph TD
-    A["사용자"] --> B("main.py: CLI 인터페이스")
-    B --> C{"질문 임베딩"}
-    C --> D["Embedding Model: all-MiniLM-L6-v2"]
-    D --> E["PostgreSQL + pgvector: 벡터 유사도 검색"]
-    E --> F{"관련 코드 청크 검색"}
-    F --> G{"프롬프트 구성"}
-    G --> H["Gemini API: 답변 생성"]
-    H --> I{"답변 포맷팅 및 저장"}
-    I --> J["results/ 디렉토리: Markdown 결과 파일"]
-    I --> B
-    B --> A
+    A[사용자] --> B(main.py: CLI 인터페이스);
+    B --> C{질문 임베딩};
+    C --> D[Embedding Model: all-MiniLM-L6-v2];
+    D --> E[PostgreSQL + pgvector: 벡터 유사도 검색];
+    E --> F{관련 코드 청크 검색};
+    F --> G{프롬프트 구성};
+    G --> H[Gemini API: 답변 생성];
+    H --> I{답변 포맷팅 및 저장};
+    I --> J[results/ 디렉토리: Markdown 결과 파일];
+    I --> B;
+    B --> A;
 
-    subgraph "API 모듈"
-        C -- "호출" --> api/rag.py
-        F -- "호출" --> api/rag.py
-        G -- "호출" --> api/rag.py
-        H -- "호출" --> api/rag.py
-        api/rag.py -- "사용" --> api/gemini_client.py
-        api/rag.py -- "사용" --> api/prompts.py
-        api/rag.py -- "사용" --> api/config.py
-        api/gemini_client.py -- "사용" --> api/config.py
+    subgraph API 모듈
+        C -- 호출 --> api/rag.py;
+        F -- 호출 --> api/rag.py;
+        G -- 호출 --> api/rag.py;
+        H -- 호출 --> api/rag.py;
+        api/rag.py -- 사용 --> api/gemini_client.py;
+        api/rag.py -- 사용 --> api/prompts.py;
+        api/rag.py -- 사용 --> api/config.py;
+        api/gemini_client.py -- 사용 --> api/config.py;
     end
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
@@ -117,16 +117,16 @@ graph TD
 ```mermaid
 graph TD
     subgraph python_rag
-        main.py --> api/rag.py
-        main.py --> api/config.py
-        main.py --> results/
+        main.py --> api/rag.py;
+        main.py --> api/config.py;
+        main.py --> results/;
     end
 
     subgraph api
-        api/rag.py --> api/gemini_client.py
-        api/rag.py --> api/prompts.py
-        api/rag.py --> api/config.py
-        api/gemini_client.py --> api/config.py
+        api/rag.py --> api/gemini_client.py;
+        api/rag.py --> api/prompts.py;
+        api/rag.py --> api/config.py;
+        api/gemini_client.py --> api/config.py;
     end
 
     style main.py fill:#bbf,stroke:#333,stroke-width:2px

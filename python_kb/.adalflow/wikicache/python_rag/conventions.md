@@ -1,7 +1,7 @@
 ---
 title: 규칙 및 규약 (명명 규칙, 규칙 등)
 project: python_rag
-generated_at: 2025-10-18 15:17:59
+generated_at: 2025-10-19 18:50:27
 generator: Python Knowledge Base Generator
 ---
 

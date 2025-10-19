@@ -1,7 +1,7 @@
 ---
 title: 전체 시스템 아키텍처 및 주요 기능에서 사용되는 디자인 패턴 (아키텍처 다이어그램 & 모듈 다이어그램 & 플로우 다이어그램 포함)
 project: python_rag
-generated_at: 2025-10-18 15:17:59
+generated_at: 2025-10-19 18:50:27
 generator: Python Knowledge Base Generator
 ---
 
@@ -52,24 +52,24 @@ generator: Python Knowledge Base Generator
 ### 고수준 아키텍처
 ```mermaid
 graph TD
-    A["사용자"] --> B("main.py - CLI 인터페이스")
-    B --> C("python_rag 애플리케이션")
-    C --> D["외부 서비스"]
+    A[사용자] --> B(main.py - CLI 인터페이스)
+    B --> C(python_rag 애플리케이션)
+    C --> D[외부 서비스]
 
-    subgraph "python_rag 애플리케이션"
-        C1("RAG Core - api/rag.py")
-        C2("Gemini 클라이언트 - api/gemini_client.py")
-        C3("프롬프트 관리 - api/prompts.py")
-        C4("설정 관리 - api/config.py")
+    subgraph python_rag 애플리케이션
+        C1(RAG Core - api/rag.py)
+        C2(Gemini 클라이언트 - api/gemini_client.py)
+        C3(프롬프트 관리 - api/prompts.py)
+        C4(설정 관리 - api/config.py)
         C1 --- C2
         C1 --- C3
         C1 --- C4
     end
 
-    subgraph "외부 서비스"
-        D1["Gemini API"]
-        D2["PostgreSQL + pgvector DB"]
-        D3["Sentence Transformers - 임베딩 모델"]
+    subgraph 외부 서비스
+        D1[Gemini API]
+        D2[PostgreSQL + pgvector DB]
+        D3[Sentence Transformers - 임베딩 모델]
     end
 
     C1 --> D1
@@ -80,25 +80,25 @@ graph TD
 ### 구성 요소 상호 작용
 ```mermaid
 graph TD
-    A[main.py] --> B{"RAG 클래스 인스턴스화 및 호출"}
-    B --> C["api/rag.py::RAG"]
+    A[main.py] --> B{RAG 클래스 인스턴스화 및 호출}
+    B --> C[api/rag.py::RAG]
 
-    C --> D["임베딩 모델 로드 및 질문 임베딩"]
-    D --> E["PostgreSQL + pgvector::유사성 검색"]
-    E --> F["api/prompts.py::프롬프트 구성"]
-    F --> G["api/gemini_client.py::Gemini API 호출"]
-    G --> H["Gemini API 응답"]
-    H --> I["api/rag.py::응답 처리"]
-    I --> J["main.py::결과 출력 및 저장"]
+    C --> D[임베딩 모델 로드 및 질문 임베딩]
+    D --> E[PostgreSQL + pgvector::유사성 검색]
+    E --> F[api/prompts.py::프롬프트 구성]
+    F --> G[api/gemini_client.py::Gemini API 호출]
+    G --> H[Gemini API 응답]
+    H --> I[api/rag.py::응답 처리]
+    I --> J[main.py::결과 출력 및 저장]
 
-    subgraph "설정 및 유틸리티"
-        K["api/config.py::설정 로드"]
-        L["api/prompts.py::템플릿 로드"]
+    subgraph 설정 및 유틸리티
+        K[api/config.py::설정 로드]
+        L[api/prompts.py::템플릿 로드]
     end
 
-    C -- "설정 사용" --> K
-    C -- "프롬프트 템플릿 사용" --> L
-    G -- "API 키 사용" --> K
+    C -- 설정 사용 --> K
+    C -- 프롬프트 템플릿 사용 --> L
+    G -- API 키 사용 --> K
 ```
 
 ### 모듈 의존성
@@ -266,30 +266,30 @@ graph TD
 #### 흐름 다이어그램
 ```mermaid
 sequenceDiagram
-    participant User as "사용자"
-    participant Main as "main.py (CLI)"
-    participant RAG as "api/rag.py (RAG Core)"
-    participant Embed as "임베딩 모델 (Sentence Transformers)"
-    participant DB as "PostgreSQL + pgvector"
-    participant Prompt as "api/prompts.py (프롬프트 관리)"
-    participant Gemini as "api/gemini_client.py (Gemini API 클라이언트)"
-    participant LLM as "Gemini API"
+    participant User as 사용자
+    participant Main as main.py (CLI)
+    participant RAG as api/rag.py (RAG Core)
+    participant Embed as 임베딩 모델 (Sentence Transformers)
+    participant DB as PostgreSQL + pgvector
+    participant Prompt as api/prompts.py (프롬프트 관리)
+    participant Gemini as api/gemini_client.py (Gemini API 클라이언트)
+    participant LLM as Gemini API
 
-    User->>Main: "질문 입력 (예: \"이 코드베이스는 무엇을 하나요?\")"
-    Main->>RAG: "RAG.answer(질문, ...) 호출"
-    RAG->>Embed: "질문 임베딩 요청"
-    Embed-->>RAG: "질문 임베딩 벡터 반환"
-    RAG->>DB: "임베딩 벡터로 유사한 코드 청크 검색 (ORDER BY embedding <-> query_embedding)"
-    DB-->>RAG: "관련 코드 청크 목록 반환"
-    RAG->>Prompt: "질문 및 청크로 프롬프트 구성 요청"
-    Prompt-->>RAG: "구성된 프롬프트 반환"
-    RAG->>Gemini: "프롬프트로 LLM 응답 생성 요청"
-    Gemini->>LLM: "generate_content(프롬프트) 호출"
-    LLM-->>Gemini: "생성된 답변 텍스트 반환"
-    Gemini-->>RAG: "답변 텍스트 반환"
-    RAG->>Main: "답변 및 컨텍스트 반환"
-    Main->>Main: "결과 파일 저장 (results/...)"
-    Main->>User: "답변 출력"
+    User->>Main: 질문 입력 (예: "이 코드베이스는 무엇을 하나요?")
+    Main->>RAG: RAG.answer(질문, ...) 호출
+    RAG->>Embed: 질문 임베딩 요청
+    Embed-->>RAG: 질문 임베딩 벡터 반환
+    RAG->>DB: 임베딩 벡터로 유사한 코드 청크 검색 (ORDER BY embedding <-> query_embedding)
+    DB-->>RAG: 관련 코드 청크 목록 반환
+    RAG->>Prompt: 질문 및 청크로 프롬프트 구성 요청
+    Prompt-->>RAG: 구성된 프롬프트 반환
+    RAG->>Gemini: 프롬프트로 LLM 응답 생성 요청
+    Gemini->>LLM: generate_content(프롬프트) 호출
+    LLM-->>Gemini: 생성된 답변 텍스트 반환
+    Gemini-->>RAG: 답변 텍스트 반환
+    RAG->>Main: 답변 및 컨텍스트 반환
+    Main->>Main: 결과 파일 저장 (results/...)
+    Main->>User: 답변 출력
 ```
 
 #### 주요 구성 요소
