@@ -70,3 +70,7 @@ certs/
 
 # python_kb cache directory
 # python_kb/.adalflow/
+
+# Puppeteer
+.puppeteerrc.cjs
+.cache/puppeteer/
